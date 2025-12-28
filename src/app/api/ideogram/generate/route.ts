@@ -25,9 +25,17 @@ export async function POST(request: NextRequest) {
       color_palette,
     } = body;
 
+    // Validate prompt is not empty
+    if (!prompt || typeof prompt !== "string" || prompt.trim() === "") {
+      return NextResponse.json(
+        { error: "Please enter a prompt description before generating an image." },
+        { status: 400 }
+      );
+    }
+
     // Build the image_request object for Ideogram V2 API
     const imageRequest: Record<string, unknown> = {
-      prompt,
+      prompt: prompt.trim(),
       aspect_ratio,
       model: "V_2",
       magic_prompt_option,

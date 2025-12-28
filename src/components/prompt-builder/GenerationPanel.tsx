@@ -24,8 +24,15 @@ export function GenerationPanel() {
       return;
     }
 
-    if (!generatedPrompt && !state.sourceImage) {
-      setError("Please create a prompt or upload an image first.");
+    // For generate mode, require a prompt
+    if (state.mode === "generate" && (!generatedPrompt || generatedPrompt.trim() === "")) {
+      setError("Please describe your subject in the Subject tab before generating.");
+      return;
+    }
+
+    // For other modes, require a source image
+    if (state.mode !== "generate" && !state.sourceImage) {
+      setError("Please upload an image first.");
       return;
     }
 
@@ -38,7 +45,7 @@ export function GenerationPanel() {
 
       if (state.mode === "generate") {
         body = {
-          prompt: generatedPrompt,
+          prompt: generatedPrompt.trim(),
           negative_prompt: state.negativePrompt || undefined,
           aspect_ratio: state.aspectRatio,
           style_type: state.styleType,
