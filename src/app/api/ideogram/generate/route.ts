@@ -22,41 +22,33 @@ export async function POST(request: NextRequest) {
       magic_prompt_option = "OFF",
       seed,
       num_images = 1,
-      rendering_speed = "BALANCED",
       color_palette,
-      style_reference_images,
-      character_reference_images,
     } = body;
 
-    // Build the image_request object for Ideogram API
+    // Build the image_request object for Ideogram V2 API
     const imageRequest: Record<string, unknown> = {
       prompt,
       aspect_ratio,
-      model: "V_2", // Use V_2 model which is stable
-      style_type,
+      model: "V_2",
       magic_prompt_option,
+      num_images,
     };
+
+    // Only add style_type if not AUTO (some APIs don't accept it)
+    if (style_type && style_type !== "AUTO") {
+      imageRequest.style_type = style_type;
+    }
 
     if (negative_prompt) {
       imageRequest.negative_prompt = negative_prompt;
     }
 
-    if (seed !== undefined && seed !== null) {
-      imageRequest.seed = seed;
+    if (seed !== undefined && seed !== null && seed !== "") {
+      imageRequest.seed = Number(seed);
     }
 
     if (color_palette) {
       imageRequest.color_palette = color_palette;
-    }
-
-    // Handle style reference images (up to 10MB total)
-    if (style_reference_images && style_reference_images.length > 0) {
-      imageRequest.style_reference_images = style_reference_images;
-    }
-
-    // Handle character reference images (currently only 1 supported)
-    if (character_reference_images && character_reference_images.length > 0) {
-      imageRequest.character_reference_images = character_reference_images.slice(0, 1);
     }
 
     // The Ideogram API expects image_request wrapper
@@ -81,9 +73,21 @@ export async function POST(request: NextRequest) {
       let errorMessage = `Ideogram API error: ${response.status}`;
       try {
         const errorData = JSON.parse(errorText);
-        errorMessage = errorData.message || errorData.error || errorMessage;
+        if (errorData.detail) {
+          // Handle validation errors
+          if (Array.isArray(errorData.detail)) {
+            errorMessage = errorData.detail.map((d: { msg?: string; message?: string }) => d.msg || d.message).join(", ");
+          } else {
+            errorMessage = errorData.detail;
+          }
+        } else {
+          errorMessage = errorData.message || errorData.error || errorMessage;
+        }
       } catch {
-        // Use default error message
+        // If parsing fails, use the raw text if it's not too long
+        if (errorText && errorText.length < 200) {
+          errorMessage = errorText;
+        }
       }
       return NextResponse.json(
         { error: errorMessage },
