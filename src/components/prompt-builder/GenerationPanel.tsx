@@ -134,12 +134,15 @@ export function GenerationPanel() {
       }
 
       const data = await response.json();
+      console.log("API Response:", JSON.stringify(data, null, 2));
 
-      if (data.data) {
-        const images = data.data.map((img: { url: string; seed: number }) => ({
-          url: img.url,
-          seed: img.seed,
+      if (data.data && Array.isArray(data.data)) {
+        const images = data.data.map((img: Record<string, unknown>) => ({
+          // Handle different possible URL property names
+          url: img.url || img.image_url || img.image || "",
+          seed: img.seed || 0,
         }));
+        console.log("Parsed images:", images);
         setGeneratedImages(images);
 
         // Add to history
