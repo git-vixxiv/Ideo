@@ -137,12 +137,22 @@ export function GenerationPanel() {
       console.log("API Response:", JSON.stringify(data, null, 2));
 
       if (data.data && Array.isArray(data.data)) {
-        const images = data.data.map((img: Record<string, unknown>) => ({
-          // Handle different possible URL property names
-          url: img.url || img.image_url || img.image || "",
-          seed: img.seed || 0,
-        }));
+        const images = data.data
+          .map((img: Record<string, unknown>) => ({
+            // Handle different possible URL property names
+            url: (img.url || img.image_url || img.image || "") as string,
+            seed: (img.seed || 0) as number,
+          }))
+          .filter((img) => img.url && img.url.length > 0);
+
         console.log("Parsed images:", images);
+
+        if (images.length === 0) {
+          console.error("No valid image URLs in response:", data);
+          setError("Images were generated but URLs are missing. Check console for details.");
+          return;
+        }
+
         setGeneratedImages(images);
 
         // Add to history

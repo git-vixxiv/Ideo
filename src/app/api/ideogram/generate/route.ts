@@ -104,6 +104,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
+    console.log("Ideogram generate response:", JSON.stringify(data, null, 2));
     return NextResponse.json(data);
   } catch (error) {
     console.error("Ideogram Generate API error:", error);
