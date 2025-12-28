@@ -23,14 +23,14 @@ export function StyleSection() {
               onClick={() => updateState("styleType", option.value)}
               className={`p-3 rounded-lg border-2 transition-all duration-200 text-left ${
                 state.styleType === option.value
-                  ? "border-violet-500 bg-violet-50 dark:bg-violet-900/30"
-                  : "border-zinc-200 dark:border-zinc-700 hover:border-violet-300"
+                  ? "border-[#998748] bg-[#d1c69e]/20 dark:bg-[#998748]/20"
+                  : "border-zinc-200 dark:border-[#3a3a3a] hover:border-[#998748]"
               }`}
             >
               <span
                 className={`font-medium text-sm ${
                   state.styleType === option.value
-                    ? "text-violet-700 dark:text-violet-300"
+                    ? "text-[#998748] dark:text-[#d1c69e]"
                     : "text-zinc-700 dark:text-zinc-300"
                 }`}
               >
@@ -95,11 +95,11 @@ export function StyleSection() {
       />
 
       {/* Tips */}
-      <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
-        <h4 className="text-sm font-semibold text-amber-900 dark:text-amber-100 mb-2">
+      <div className="p-4 bg-[#998748]/10 dark:bg-[#998748]/20 rounded-lg border border-[#998748]/30 dark:border-[#998748]/40">
+        <h4 className="text-sm font-semibold text-[#1A1A1A] dark:text-[#f4f4f4] mb-2">
           Style Tips
         </h4>
-        <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
+        <ul className="text-sm text-[#6b6b6b] dark:text-[#d1c69e] space-y-1">
           <li>• Choose ONE primary art style for best results</li>
           <li>• Mixing styles (e.g., &ldquo;cinematic watercolor&rdquo;) often creates muddy outputs</li>
           <li>• Mood words like &ldquo;whimsical&rdquo; or &ldquo;dramatic&rdquo; strongly influence results</li>

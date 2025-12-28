@@ -25,14 +25,14 @@ export function TechnicalSection() {
               onClick={() => updateState("aspectRatio", option.value)}
               className={`p-3 rounded-lg border-2 transition-all duration-200 ${
                 state.aspectRatio === option.value
-                  ? "border-violet-500 bg-violet-50 dark:bg-violet-900/30"
-                  : "border-zinc-200 dark:border-zinc-700 hover:border-violet-300"
+                  ? "border-[#998748] bg-[#d1c69e]/20 dark:bg-[#998748]/20"
+                  : "border-zinc-200 dark:border-[#3a3a3a] hover:border-[#998748]"
               }`}
             >
               <span
                 className={`font-medium text-sm block ${
                   state.aspectRatio === option.value
-                    ? "text-violet-700 dark:text-violet-300"
+                    ? "text-[#998748] dark:text-[#d1c69e]"
                     : "text-zinc-700 dark:text-zinc-300"
                 }`}
               >
@@ -58,14 +58,14 @@ export function TechnicalSection() {
               onClick={() => updateState("renderingSpeed", option.value)}
               className={`p-4 rounded-lg border-2 transition-all duration-200 ${
                 state.renderingSpeed === option.value
-                  ? "border-violet-500 bg-violet-50 dark:bg-violet-900/30"
-                  : "border-zinc-200 dark:border-zinc-700 hover:border-violet-300"
+                  ? "border-[#998748] bg-[#d1c69e]/20 dark:bg-[#998748]/20"
+                  : "border-zinc-200 dark:border-[#3a3a3a] hover:border-[#998748]"
               }`}
             >
               <span
                 className={`font-semibold text-sm block ${
                   state.renderingSpeed === option.value
-                    ? "text-violet-700 dark:text-violet-300"
+                    ? "text-[#998748] dark:text-[#d1c69e]"
                     : "text-zinc-700 dark:text-zinc-300"
                 }`}
               >
@@ -74,7 +74,7 @@ export function TechnicalSection() {
               <span className="text-xs text-zinc-500 dark:text-zinc-400 block mt-1">
                 {option.description}
               </span>
-              <span className="text-xs font-medium text-violet-600 dark:text-violet-400 mt-1 block">
+              <span className="text-xs font-medium text-[#998748] dark:text-[#d1c69e] mt-1 block">
                 {option.price}/image
               </span>
             </button>
@@ -104,8 +104,8 @@ export function TechnicalSection() {
               onClick={() => updateState("magicPrompt", option)}
               className={`flex-1 py-2 px-4 rounded-lg border-2 transition-all duration-200 ${
                 state.magicPrompt === option
-                  ? "border-violet-500 bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300"
-                  : "border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-400 hover:border-violet-300"
+                  ? "border-[#998748] bg-[#d1c69e]/20 dark:bg-[#998748]/20 text-[#998748] dark:text-[#d1c69e]"
+                  : "border-zinc-200 dark:border-[#3a3a3a] text-zinc-600 dark:text-zinc-400 hover:border-[#998748]"
               }`}
             >
               {option}

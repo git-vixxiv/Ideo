@@ -153,7 +153,7 @@ export function GenerationPanel() {
             </div>
             <div className="flex justify-between text-sm">
               <span className="text-zinc-500 dark:text-zinc-400">Est. Cost</span>
-              <span className="text-violet-600 dark:text-violet-400 font-medium">
+              <span className="text-[#998748] dark:text-[#d1c69e] font-medium">
                 $
                 {(
                   state.numImages *

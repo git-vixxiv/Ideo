@@ -11,8 +11,8 @@ export function ReferenceSection() {
     <div className="space-y-6">
       {/* Mode-specific content */}
       {(state.mode === "remix" || state.mode === "edit") && (
-        <div className="p-4 bg-violet-50 dark:bg-violet-900/20 rounded-lg border border-violet-200 dark:border-violet-800 mb-4">
-          <p className="text-sm text-violet-700 dark:text-violet-300">
+        <div className="p-4 bg-[#2589bd]/10 dark:bg-[#2589bd]/20 rounded-lg border border-[#2589bd]/30 dark:border-[#2589bd]/40 mb-4">
+          <p className="text-sm text-[#2589bd] dark:text-[#2589bd]">
             {state.mode === "remix"
               ? "Upload an image to remix. The prompt will guide how the image is transformed."
               : "Upload an image and a mask to edit specific areas."}
@@ -89,11 +89,11 @@ export function ReferenceSection() {
       )}
 
       {/* Tips */}
-      <div className="p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-        <h4 className="text-sm font-semibold text-green-900 dark:text-green-100 mb-2">
+      <div className="p-4 bg-[#998748]/10 dark:bg-[#998748]/20 rounded-lg border border-[#998748]/30 dark:border-[#998748]/40">
+        <h4 className="text-sm font-semibold text-[#1A1A1A] dark:text-[#f4f4f4] mb-2">
           Reference Image Tips
         </h4>
-        <ul className="text-sm text-green-700 dark:text-green-300 space-y-1">
+        <ul className="text-sm text-[#6b6b6b] dark:text-[#d1c69e] space-y-1">
           <li>• Use JPEG, PNG, or WebP format (max 10MB)</li>
           <li>• Style references work best with clear, distinctive styles</li>
           <li>• Character references help maintain face consistency across images</li>

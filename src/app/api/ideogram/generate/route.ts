@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const IDEOGRAM_API_URL = "https://api.ideogram.ai/v1/ideogram-v3/generate";
+const IDEOGRAM_API_URL = "https://api.ideogram.ai/generate";
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       negative_prompt,
       aspect_ratio = "ASPECT_1_1",
       style_type = "AUTO",
-      magic_prompt_option = "AUTO",
+      magic_prompt_option = "OFF",
       seed,
       num_images = 1,
       rendering_speed = "BALANCED",
@@ -28,37 +28,43 @@ export async function POST(request: NextRequest) {
       character_reference_images,
     } = body;
 
-    // Build the request body
-    const requestBody: Record<string, unknown> = {
+    // Build the image_request object for Ideogram API
+    const imageRequest: Record<string, unknown> = {
       prompt,
       aspect_ratio,
+      model: "V_2", // Use V_2 model which is stable
       style_type,
       magic_prompt_option,
-      num_images,
-      rendering_speed,
     };
 
     if (negative_prompt) {
-      requestBody.negative_prompt = negative_prompt;
+      imageRequest.negative_prompt = negative_prompt;
     }
 
     if (seed !== undefined && seed !== null) {
-      requestBody.seed = seed;
+      imageRequest.seed = seed;
     }
 
     if (color_palette) {
-      requestBody.color_palette = color_palette;
+      imageRequest.color_palette = color_palette;
     }
 
     // Handle style reference images (up to 10MB total)
     if (style_reference_images && style_reference_images.length > 0) {
-      requestBody.style_reference_images = style_reference_images;
+      imageRequest.style_reference_images = style_reference_images;
     }
 
     // Handle character reference images (currently only 1 supported)
     if (character_reference_images && character_reference_images.length > 0) {
-      requestBody.character_reference_images = character_reference_images.slice(0, 1);
+      imageRequest.character_reference_images = character_reference_images.slice(0, 1);
     }
+
+    // The Ideogram API expects image_request wrapper
+    const requestBody = {
+      image_request: imageRequest,
+    };
+
+    console.log("Sending to Ideogram API:", JSON.stringify(requestBody, null, 2));
 
     const response = await fetch(IDEOGRAM_API_URL, {
       method: "POST",
@@ -70,9 +76,17 @@ export async function POST(request: NextRequest) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorText = await response.text();
+      console.error("Ideogram API error response:", errorText);
+      let errorMessage = `Ideogram API error: ${response.status}`;
+      try {
+        const errorData = JSON.parse(errorText);
+        errorMessage = errorData.message || errorData.error || errorMessage;
+      } catch {
+        // Use default error message
+      }
       return NextResponse.json(
-        { error: errorData.message || `Ideogram API error: ${response.status}` },
+        { error: errorMessage },
         { status: response.status }
       );
     }

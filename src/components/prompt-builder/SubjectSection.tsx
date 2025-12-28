@@ -82,11 +82,11 @@ export function SubjectSection() {
       />
 
       {/* Tips */}
-      <div className="p-4 bg-violet-50 dark:bg-violet-900/20 rounded-lg border border-violet-200 dark:border-violet-800">
-        <h4 className="text-sm font-semibold text-violet-900 dark:text-violet-100 mb-2">
+      <div className="p-4 bg-[#998748]/10 dark:bg-[#998748]/20 rounded-lg border border-[#998748]/30 dark:border-[#998748]/40">
+        <h4 className="text-sm font-semibold text-[#1A1A1A] dark:text-[#f4f4f4] mb-2">
           Pro Tips
         </h4>
-        <ul className="text-sm text-violet-700 dark:text-violet-300 space-y-1">
+        <ul className="text-sm text-[#6b6b6b] dark:text-[#d1c69e] space-y-1">
           <li>• Lead with the most important element of your image</li>
           <li>• Be specific: &ldquo;golden retriever puppy&rdquo; vs just &ldquo;dog&rdquo;</li>
           <li>• Mention only one main subject to avoid confusion</li>

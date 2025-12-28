@@ -78,7 +78,7 @@ export function HistoryPanel({ onClose }: HistoryPanelProps) {
               {history.map((item) => (
                 <div
                   key={item.id}
-                  className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:border-violet-300 dark:hover:border-violet-700 transition-colors"
+                  className="p-4 bg-zinc-50 dark:bg-[#242424] rounded-lg border border-zinc-200 dark:border-[#3a3a3a] hover:border-[#998748] dark:hover:border-[#998748] transition-colors"
                 >
                   <div className="flex items-start justify-between gap-4 mb-2">
                     <p className="text-sm text-zinc-600 dark:text-zinc-400">
@@ -110,7 +110,7 @@ export function HistoryPanel({ onClose }: HistoryPanelProps) {
                       </button>
                       <button
                         onClick={() => handleLoad(item)}
-                        className="p-1.5 text-zinc-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                        className="p-1.5 text-zinc-400 hover:text-[#998748] hover:bg-[#998748]/10 dark:hover:bg-[#998748]/20 rounded-lg transition-colors"
                         title="Load this prompt"
                       >
                         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,7 +151,7 @@ export function HistoryPanel({ onClose }: HistoryPanelProps) {
 
                   <div className="flex flex-wrap gap-2 mt-2">
                     {item.state.subjectCategory && (
-                      <span className="px-2 py-0.5 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 text-xs rounded-full">
+                      <span className="px-2 py-0.5 bg-[#998748]/20 dark:bg-[#998748]/30 text-[#998748] dark:text-[#d1c69e] text-xs rounded-full">
                         {item.state.subjectCategory}
                       </span>
                     )}

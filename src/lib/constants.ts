@@ -365,7 +365,7 @@ export const DEFAULT_PROMPT_STATE = {
   renderingSpeed: "BALANCED" as RenderingSpeed,
   colorPalette: null,
   customColors: [],
-  magicPrompt: "AUTO" as const,
+  magicPrompt: "OFF" as const,
   seed: null,
   numImages: 1,
   textContent: "",

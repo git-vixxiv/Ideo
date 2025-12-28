@@ -99,25 +99,27 @@ export function ImageUpload({
       )}
 
       {value ? (
-        <div className="relative group">
-          <img
-            src={value}
-            alt="Uploaded"
-            className="w-full h-48 object-cover rounded-lg border border-zinc-200 dark:border-zinc-700"
-          />
-          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
-            <button
-              onClick={() => inputRef.current?.click()}
-              className="px-3 py-1.5 bg-white text-zinc-900 text-sm font-medium rounded-lg hover:bg-zinc-100 transition-colors"
-            >
-              Replace
-            </button>
-            <button
-              onClick={handleRemove}
-              className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
-            >
-              Remove
-            </button>
+        <div className="relative group inline-block w-full">
+          <div className="relative w-full flex justify-center bg-zinc-100 dark:bg-[#242424] rounded-lg border border-zinc-200 dark:border-[#3a3a3a] overflow-hidden">
+            <img
+              src={value}
+              alt="Uploaded"
+              className="max-w-full max-h-80 w-auto h-auto object-contain rounded-lg"
+            />
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center gap-2">
+              <button
+                onClick={() => inputRef.current?.click()}
+                className="px-3 py-1.5 bg-white text-[#1A1A1A] text-sm font-medium rounded-lg hover:bg-zinc-100 transition-colors"
+              >
+                Replace
+              </button>
+              <button
+                onClick={handleRemove}
+                className="px-3 py-1.5 bg-red-600 text-white text-sm font-medium rounded-lg hover:bg-red-700 transition-colors"
+              >
+                Remove
+              </button>
+            </div>
           </div>
         </div>
       ) : (
