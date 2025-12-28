@@ -128,13 +128,13 @@ export function ImageUpload({
           onClick={() => inputRef.current?.click()}
           className={`w-full h-48 border-2 border-dashed rounded-lg flex flex-col items-center justify-center cursor-pointer transition-all duration-200 ${
             isDragging
-              ? "border-violet-500 bg-violet-50 dark:bg-violet-900/20"
-              : "border-zinc-300 dark:border-zinc-700 hover:border-violet-400 hover:bg-zinc-50 dark:hover:bg-zinc-800/50"
+              ? "border-[#998748] bg-[#d1c69e]/20 dark:bg-[#998748]/20"
+              : "border-zinc-300 dark:border-[#3a3a3a] hover:border-[#998748] hover:bg-zinc-50 dark:hover:bg-[#242424]"
           }`}
         >
           <svg
             className={`w-10 h-10 mb-2 ${
-              isDragging ? "text-violet-500" : "text-zinc-400"
+              isDragging ? "text-[#998748]" : "text-zinc-400"
             }`}
             fill="none"
             stroke="currentColor"

@@ -74,8 +74,8 @@ export function ColorPicker({
             onClick={() => handlePresetClick(preset.value)}
             className={`p-2 rounded-lg border-2 transition-all duration-200 ${
               value === preset.value
-                ? "border-violet-500 ring-2 ring-violet-200 dark:ring-violet-800"
-                : "border-zinc-200 dark:border-zinc-700 hover:border-violet-300"
+                ? "border-[#998748] ring-2 ring-[#d1c69e] dark:ring-[#998748]/50"
+                : "border-zinc-200 dark:border-[#3a3a3a] hover:border-[#998748]"
             }`}
           >
             <div className="flex gap-0.5 mb-1">
@@ -98,8 +98,8 @@ export function ColorPicker({
         onClick={handleCustomClick}
         className={`w-full p-3 rounded-lg border-2 border-dashed transition-all duration-200 ${
           showCustom
-            ? "border-violet-500 bg-violet-50 dark:bg-violet-900/30"
-            : "border-zinc-300 dark:border-zinc-700 hover:border-violet-400"
+            ? "border-[#998748] bg-[#d1c69e]/20 dark:bg-[#998748]/20"
+            : "border-zinc-300 dark:border-[#3a3a3a] hover:border-[#998748]"
         }`}
       >
         <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
@@ -129,7 +129,7 @@ export function ColorPicker({
             {customColors.length < 6 && (
               <button
                 onClick={handleAddColor}
-                className="w-12 h-12 rounded-lg border-2 border-dashed border-zinc-300 dark:border-zinc-600 flex items-center justify-center text-zinc-400 hover:border-violet-400 hover:text-violet-500 transition-colors"
+                className="w-12 h-12 rounded-lg border-2 border-dashed border-zinc-300 dark:border-[#3a3a3a] flex items-center justify-center text-zinc-400 hover:border-[#998748] hover:text-[#998748] transition-colors"
               >
                 +
               </button>

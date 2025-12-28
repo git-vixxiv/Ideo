@@ -43,7 +43,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
               </label>
             )}
             {showValue && (
-              <span className="text-sm font-medium text-violet-600 dark:text-violet-400">
+              <span className="text-sm font-medium text-[#998748] dark:text-[#d1c69e]">
                 {valuePrefix}
                 {value}
                 {valueSuffix}
@@ -62,7 +62,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
             onChange={(e) => onChange(Number(e.target.value))}
             className="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-full appearance-none cursor-pointer slider-thumb"
             style={{
-              background: `linear-gradient(to right, rgb(139, 92, 246) 0%, rgb(139, 92, 246) ${percentage}%, rgb(228, 228, 231) ${percentage}%, rgb(228, 228, 231) 100%)`,
+              background: `linear-gradient(to right, #998748 0%, #998748 ${percentage}%, rgb(228, 228, 231) ${percentage}%, rgb(228, 228, 231) 100%)`,
             }}
             {...props}
           />
@@ -75,7 +75,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
             height: 18px;
             border-radius: 50%;
             background: white;
-            border: 2px solid rgb(139, 92, 246);
+            border: 2px solid #998748;
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
             transition: transform 0.15s ease;
@@ -88,7 +88,7 @@ export const Slider = forwardRef<HTMLInputElement, SliderProps>(
             height: 18px;
             border-radius: 50%;
             background: white;
-            border: 2px solid rgb(139, 92, 246);
+            border: 2px solid #998748;
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
           }

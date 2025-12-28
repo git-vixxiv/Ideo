@@ -3,7 +3,7 @@
 import { forwardRef, ButtonHTMLAttributes } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "secondary" | "ghost" | "danger";
+  variant?: "primary" | "secondary" | "ghost" | "danger" | "accent";
   size?: "sm" | "md" | "lg";
   loading?: boolean;
 }
@@ -12,11 +12,13 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className = "", variant = "primary", size = "md", loading, disabled, children, ...props }, ref) => {
     const baseStyles = "inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed";
 
+    // iddy brand colors
     const variants = {
-      primary: "bg-gradient-to-r from-violet-600 to-indigo-600 text-white hover:from-violet-700 hover:to-indigo-700 focus:ring-violet-500 shadow-lg shadow-violet-500/25",
-      secondary: "bg-zinc-100 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 hover:bg-zinc-200 dark:hover:bg-zinc-700 focus:ring-zinc-500",
-      ghost: "text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:ring-zinc-500",
+      primary: "bg-gradient-to-r from-[#998748] to-[#d1c69e] text-[#1A1A1A] hover:shadow-lg hover:shadow-[#998748]/30 focus:ring-[#998748]",
+      secondary: "bg-[#f4f4f4] dark:bg-[#242424] text-[#1A1A1A] dark:text-[#f4f4f4] hover:bg-[#e8e8e8] dark:hover:bg-[#2e2e2e] focus:ring-[#998748] border border-[#e0e0e0] dark:border-[#3a3a3a]",
+      ghost: "text-[#1A1A1A] dark:text-[#f4f4f4] hover:bg-[#f4f4f4] dark:hover:bg-[#242424] focus:ring-[#998748]",
       danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+      accent: "bg-[#2589bd] text-white hover:bg-[#1e7aa8] hover:shadow-lg hover:shadow-[#2589bd]/30 focus:ring-[#2589bd]",
     };
 
     const sizes = {

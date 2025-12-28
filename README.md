@@ -1,4 +1,4 @@
-# Ideogram Prompt Builder
+# iddy - AI Image Prompt Builder for Ideogram
 
 A powerful web application that helps you craft the perfect prompts for Ideogram AI image generation, powered by Claude for intelligent prompt optimization.
 
@@ -44,10 +44,14 @@ A powerful web application that helps you craft the perfect prompts for Ideogram
 - **Upscale**: Enhance image resolution
 - **Describe**: Get prompt suggestions from images
 
-### History & Favorites
-- Automatic prompt history (last 50 generations)
-- Favorite prompts for quick access
-- One-click reload of previous settings
+### User Accounts (with Supabase)
+- **Google Sign-In**: Secure authentication with your Google account
+- **Saved Prompts**: Save your best prompts for reuse
+- **Prompt Rating**: Rate prompts 1-5 stars based on results
+- **Collections**: Organize prompts into custom collections
+- **Color Schemes**: Save custom color palettes
+- **Generation History**: Track all your generations with ratings
+- **Cloud Sync**: Access your data from any device
 
 ## Getting Started
 
@@ -55,16 +59,20 @@ A powerful web application that helps you craft the perfect prompts for Ideogram
 - Node.js 18+
 - Claude API key (from [console.anthropic.com](https://console.anthropic.com))
 - Ideogram API key (from [developer.ideogram.ai](https://developer.ideogram.ai))
+- Supabase project (optional, for user accounts)
 
 ### Installation
 
 ```bash
 # Clone the repository
 git clone <your-repo-url>
-cd ideogram-prompt-builder
+cd iddy
 
 # Install dependencies
 npm install
+
+# Copy environment variables
+cp .env.example .env.local
 
 # Run the development server
 npm run dev
@@ -74,26 +82,46 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ### Configuration
 
+#### Basic Setup (Local Mode)
 1. Click the **Settings** icon in the header
 2. Enter your Claude API key
 3. Enter your Ideogram API key
 4. Click **Save Settings**
 
-Your API keys are stored locally in your browser and never sent to any server except the respective APIs.
+Your API keys are stored locally in your browser.
+
+#### With Supabase (User Accounts)
+1. Create a project at [supabase.com](https://supabase.com)
+2. Run the SQL schema from `supabase-schema.sql` in the SQL Editor
+3. Enable Google OAuth in Authentication → Providers
+4. Add your Supabase URL and anon key to `.env.local`
+5. Deploy!
 
 ## Tech Stack
 
 - **Framework**: Next.js 16 with App Router
 - **Styling**: Tailwind CSS 4
 - **Language**: TypeScript
+- **Database**: Supabase (PostgreSQL)
+- **Auth**: Supabase Auth with Google OAuth
 - **APIs**: Claude API, Ideogram API
 - **Deployment**: Vercel (recommended)
+
+## Brand Colors
+
+iddy uses a sophisticated color palette:
+- **Primary Black**: `#1A1A1A`
+- **Primary Gold**: `#998748`
+- **Accent Blue**: `#2589bd`
+- **Platinum**: `#f4f4f4`
+- **Light Gold**: `#d1c69e`
 
 ## Cost
 
 The app itself is **free to use**. You only pay for:
 - Claude API usage (for prompt optimization)
 - Ideogram API usage (for image generation)
+- Supabase (free tier is generous - 50K monthly active users)
 
 Ideogram pricing per image:
 - Turbo: $0.03
@@ -106,9 +134,16 @@ Ideogram pricing per image:
 
 1. Push your code to GitHub
 2. Import the repository in [Vercel](https://vercel.com)
-3. Deploy!
+3. Add environment variables (if using Supabase)
+4. Deploy!
 
-No environment variables needed - users provide their own API keys.
+### Environment Variables
+
+For Supabase user accounts:
+```
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
 
 ### Other Platforms
 
@@ -119,7 +154,7 @@ The app can be deployed to any platform that supports Next.js:
 
 ## Ideogram Prompt Best Practices
 
-This app is built with Ideogram best practices in mind:
+iddy is built with Ideogram best practices in mind:
 
 1. **Lead with the subject**: The most important element should come first
 2. **One style, one subject**: Avoid mixing conflicting styles

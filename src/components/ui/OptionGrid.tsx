@@ -55,8 +55,8 @@ export function OptionGrid({
               onClick={() => onChange(isSelected ? "" : option.id)}
               className={`${sizes[size]} rounded-lg border-2 transition-all duration-200 text-left ${
                 isSelected
-                  ? "border-violet-500 bg-violet-50 dark:bg-violet-900/30"
-                  : "border-zinc-200 dark:border-zinc-700 hover:border-violet-300 dark:hover:border-violet-700"
+                  ? "border-[#998748] bg-[#d1c69e]/20 dark:bg-[#998748]/20"
+                  : "border-zinc-200 dark:border-[#3a3a3a] hover:border-[#998748] dark:hover:border-[#998748]"
               }`}
             >
               {option.icon && (
@@ -65,7 +65,7 @@ export function OptionGrid({
               <span
                 className={`font-medium ${
                   isSelected
-                    ? "text-violet-700 dark:text-violet-300"
+                    ? "text-[#998748] dark:text-[#d1c69e]"
                     : "text-zinc-700 dark:text-zinc-300"
                 }`}
               >

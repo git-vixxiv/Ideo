@@ -24,9 +24,9 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
-      <div className="bg-white dark:bg-zinc-900 rounded-2xl w-full max-w-lg shadow-2xl">
-        <div className="p-6 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
-          <h2 className="text-xl font-semibold text-zinc-900 dark:text-zinc-100">
+      <div className="bg-white dark:bg-[#1A1A1A] rounded-2xl w-full max-w-lg shadow-2xl border border-zinc-200 dark:border-[#3a3a3a]">
+        <div className="p-6 border-b border-zinc-200 dark:border-[#3a3a3a] flex items-center justify-between">
+          <h2 className="text-xl font-semibold text-[#1A1A1A] dark:text-[#f4f4f4]">
             Settings
           </h2>
           <button
@@ -60,7 +60,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   value={claudeKey}
                   onChange={(e) => setClaudeKey(e.target.value)}
                   placeholder="sk-ant-..."
-                  className="w-full px-3 py-2 pr-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-3 py-2 pr-10 bg-white dark:bg-[#242424] border border-zinc-200 dark:border-[#3a3a3a] rounded-lg text-[#1A1A1A] dark:text-[#f4f4f4] placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#998748]"
                 />
                 <button
                   type="button"
@@ -85,7 +85,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   href="https://console.anthropic.com/settings/keys"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-violet-600 dark:text-violet-400 hover:underline"
+                  className="text-[#2589bd] dark:text-[#2589bd] hover:underline"
                 >
                   console.anthropic.com
                 </a>
@@ -103,7 +103,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   value={ideogramKey}
                   onChange={(e) => setIdeogramKey(e.target.value)}
                   placeholder="Enter your Ideogram API key"
-                  className="w-full px-3 py-2 pr-10 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg text-zinc-900 dark:text-zinc-100 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-3 py-2 pr-10 bg-white dark:bg-[#242424] border border-zinc-200 dark:border-[#3a3a3a] rounded-lg text-[#1A1A1A] dark:text-[#f4f4f4] placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#998748]"
                 />
                 <button
                   type="button"
@@ -128,7 +128,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   href="https://developer.ideogram.ai"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-violet-600 dark:text-violet-400 hover:underline"
+                  className="text-[#2589bd] dark:text-[#2589bd] hover:underline"
                 >
                   developer.ideogram.ai
                 </a>
@@ -137,7 +137,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           </div>
 
           {/* Reset */}
-          <div className="pt-4 border-t border-zinc-200 dark:border-zinc-800">
+          <div className="pt-4 border-t border-zinc-200 dark:border-[#3a3a3a]">
             <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 uppercase tracking-wide mb-2">
               Data
             </h3>
@@ -155,7 +155,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
           </div>
         </div>
 
-        <div className="p-6 border-t border-zinc-200 dark:border-zinc-800 flex justify-end gap-3">
+        <div className="p-6 border-t border-zinc-200 dark:border-[#3a3a3a] flex justify-end gap-3">
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>

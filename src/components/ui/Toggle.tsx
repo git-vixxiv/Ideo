@@ -30,8 +30,8 @@ export const Toggle = forwardRef<HTMLInputElement, ToggleProps>(
           <div
             className={`w-10 h-6 rounded-full transition-colors duration-200 ${
               checked
-                ? "bg-violet-600"
-                : "bg-zinc-200 dark:bg-zinc-700"
+                ? "bg-[#998748]"
+                : "bg-zinc-200 dark:bg-[#3a3a3a]"
             }`}
           />
           <div

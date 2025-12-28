@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { usePromptContext } from "@/lib/prompt-context";
+import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/Tabs";
+import { Button } from "@/components/ui/Button";
 import { SubjectSection } from "./SubjectSection";
 import { StyleSection } from "./StyleSection";
 import { TechnicalSection } from "./TechnicalSection";
@@ -13,22 +15,45 @@ import { PromptPreview } from "./PromptPreview";
 import { GenerationPanel } from "./GenerationPanel";
 import { SettingsModal } from "./SettingsModal";
 import { HistoryPanel } from "./HistoryPanel";
+import { CollectionsPanel } from "./CollectionsPanel";
+import { UserMenu } from "./UserMenu";
 
 export function PromptBuilder() {
   const { state, updateState } = usePromptContext();
+  const { user, isLoading, isConfigured } = useAuth();
   const [showSettings, setShowSettings] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [showCollections, setShowCollections] = useState(false);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-zinc-50 via-violet-50/30 to-zinc-50 dark:from-zinc-950 dark:via-violet-950/20 dark:to-zinc-950">
+    <div className="min-h-screen bg-[#f4f4f4] dark:bg-[#1A1A1A]">
       {/* Header */}
-      <header className="sticky top-0 z-50 backdrop-blur-xl bg-white/80 dark:bg-zinc-900/80 border-b border-zinc-200 dark:border-zinc-800">
+      <header className="sticky top-0 z-50 backdrop-blur-xl bg-[#f4f4f4]/90 dark:bg-[#1A1A1A]/90 border-b border-[#e0e0e0] dark:border-[#3a3a3a]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#998748] to-[#d1c69e] flex items-center justify-center shadow-lg shadow-[#998748]/20">
+                <span className="text-[#1A1A1A] font-bold text-lg">id</span>
+              </div>
+              <div>
+                <h1 className="text-xl font-bold text-[#1A1A1A] dark:text-[#f4f4f4]">
+                  iddy
+                </h1>
+                <p className="text-xs text-[#6b6b6b] dark:text-[#9a9a9a]">
+                  AI Prompt Builder for Ideogram
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+              {/* Collections Button */}
+              <button
+                onClick={() => setShowCollections(true)}
+                className="p-2 text-[#6b6b6b] dark:text-[#9a9a9a] hover:text-[#998748] hover:bg-[#998748]/10 rounded-lg transition-colors"
+                title="Collections"
+              >
                 <svg
-                  className="w-6 h-6 text-white"
+                  className="w-5 h-5"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -37,24 +62,15 @@ export function PromptBuilder() {
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth={2}
-                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
                   />
                 </svg>
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
-                  Ideogram Prompt Builder
-                </h1>
-                <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  Powered by Claude
-                </p>
-              </div>
-            </div>
+              </button>
 
-            <div className="flex items-center gap-2">
+              {/* History Button */}
               <button
                 onClick={() => setShowHistory(true)}
-                className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                className="p-2 text-[#6b6b6b] dark:text-[#9a9a9a] hover:text-[#998748] hover:bg-[#998748]/10 rounded-lg transition-colors"
                 title="History"
               >
                 <svg
@@ -71,9 +87,11 @@ export function PromptBuilder() {
                   />
                 </svg>
               </button>
+
+              {/* Settings Button */}
               <button
                 onClick={() => setShowSettings(true)}
-                className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
+                className="p-2 text-[#6b6b6b] dark:text-[#9a9a9a] hover:text-[#998748] hover:bg-[#998748]/10 rounded-lg transition-colors"
                 title="Settings"
               >
                 <svg
@@ -96,6 +114,9 @@ export function PromptBuilder() {
                   />
                 </svg>
               </button>
+
+              {/* User Menu / Sign In */}
+              <UserMenu />
             </div>
           </div>
         </div>
@@ -116,8 +137,8 @@ export function PromptBuilder() {
               onClick={() => updateState("mode", mode.id as typeof state.mode)}
               className={`flex items-center gap-2 px-4 py-2 rounded-full whitespace-nowrap transition-all duration-200 ${
                 state.mode === mode.id
-                  ? "bg-violet-600 text-white shadow-lg shadow-violet-500/25"
-                  : "bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700 border border-zinc-200 dark:border-zinc-700"
+                  ? "bg-gradient-to-r from-[#998748] to-[#d1c69e] text-[#1A1A1A] shadow-lg shadow-[#998748]/25"
+                  : "bg-white dark:bg-[#242424] text-[#1A1A1A] dark:text-[#f4f4f4] hover:bg-[#f0f0f0] dark:hover:bg-[#2e2e2e] border border-[#e0e0e0] dark:border-[#3a3a3a]"
               }`}
             >
               <span>{mode.icon}</span>
@@ -177,6 +198,7 @@ export function PromptBuilder() {
       {/* Modals */}
       {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
       {showHistory && <HistoryPanel onClose={() => setShowHistory(false)} />}
+      {showCollections && <CollectionsPanel onClose={() => setShowCollections(false)} />}
     </div>
   );
 }

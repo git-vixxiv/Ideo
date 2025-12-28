@@ -9,9 +9,9 @@ interface CardProps extends HTMLAttributes<HTMLDivElement> {
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   ({ className = "", variant = "default", children, ...props }, ref) => {
     const variants = {
-      default: "bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800",
-      elevated: "bg-white dark:bg-zinc-900 shadow-lg shadow-zinc-200/50 dark:shadow-zinc-900/50",
-      outlined: "bg-transparent border-2 border-zinc-200 dark:border-zinc-700",
+      default: "bg-white dark:bg-[#242424] border border-[#e0e0e0] dark:border-[#3a3a3a]",
+      elevated: "bg-white dark:bg-[#242424] shadow-lg shadow-[#1A1A1A]/5 dark:shadow-black/20",
+      outlined: "bg-transparent border-2 border-[#e0e0e0] dark:border-[#3a3a3a]",
     };
 
     return (
@@ -33,7 +33,7 @@ export const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivEleme
     return (
       <div
         ref={ref}
-        className={`px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 ${className}`}
+        className={`px-6 py-4 border-b border-[#e0e0e0] dark:border-[#3a3a3a] ${className}`}
         {...props}
       >
         {children}
@@ -61,7 +61,7 @@ export const CardFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivEleme
     return (
       <div
         ref={ref}
-        className={`px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 ${className}`}
+        className={`px-6 py-4 border-t border-[#e0e0e0] dark:border-[#3a3a3a] ${className}`}
         {...props}
       >
         {children}

@@ -1,18 +1,21 @@
 import type { Metadata } from "next";
 import { PromptProvider } from "@/lib/prompt-context";
+import { AuthProvider } from "@/lib/auth-context";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Ideogram Prompt Builder | Craft Perfect AI Image Prompts",
+  title: "iddy | AI Image Prompt Builder for Ideogram",
   description:
-    "Create the perfect prompts for Ideogram AI image generation. Powered by Claude for intelligent prompt optimization.",
+    "Create perfect prompts for Ideogram AI image generation. Powered by Claude for intelligent prompt optimization. Save your prompts, rate results, and build collections.",
   keywords: [
+    "iddy",
     "Ideogram",
     "AI",
-    "prompt",
+    "prompt builder",
     "image generation",
     "Claude",
     "prompt engineering",
+    "AI art",
   ],
 };
 
@@ -24,7 +27,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className="font-sans antialiased">
-        <PromptProvider>{children}</PromptProvider>
+        <AuthProvider>
+          <PromptProvider>{children}</PromptProvider>
+        </AuthProvider>
       </body>
     </html>
   );
