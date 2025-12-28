@@ -4,7 +4,6 @@ import { useState } from "react";
 import { usePromptContext } from "@/lib/prompt-context";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
-import { buildPrompt } from "@/lib/prompt-builder";
 
 interface GeneratedImage {
   url: string;
@@ -18,6 +17,9 @@ export function GenerationPanel() {
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  // Get the effective prompt - either from built prompt or direct subject
+  const effectivePrompt = generatedPrompt?.trim() || state.subject?.trim() || "";
+
   const handleGenerate = async () => {
     if (!apiKeys.ideogram) {
       setError("Please add your Ideogram API key in settings first.");
@@ -25,14 +27,16 @@ export function GenerationPanel() {
     }
 
     // For generate mode, require a prompt
-    if (state.mode === "generate" && (!generatedPrompt || generatedPrompt.trim() === "")) {
-      setError("Please describe your subject in the Subject tab before generating.");
-      return;
+    if (state.mode === "generate") {
+      if (!effectivePrompt) {
+        setError("Please describe your subject in the Subject tab before generating.");
+        return;
+      }
     }
 
     // For other modes, require a source image
     if (state.mode !== "generate" && !state.sourceImage) {
-      setError("Please upload an image first.");
+      setError("Please upload an image first in the Reference tab.");
       return;
     }
 
@@ -43,29 +47,77 @@ export function GenerationPanel() {
       let endpoint = "/api/ideogram/generate";
       let body: Record<string, unknown> = {};
 
-      if (state.mode === "generate") {
-        body = {
-          prompt: generatedPrompt.trim(),
-          negative_prompt: state.negativePrompt || undefined,
-          aspect_ratio: state.aspectRatio,
-          style_type: state.styleType,
-          magic_prompt_option: state.magicPrompt,
-          seed: state.seed || undefined,
-          num_images: state.numImages,
-          rendering_speed: state.renderingSpeed,
-          color_palette: state.colorPalette
-            ? state.colorPalette === "CUSTOM"
-              ? { members: state.customColors.map((c) => ({ color: c })) }
-              : { name: state.colorPalette }
-            : undefined,
-        };
-      } else if (state.mode === "describe") {
-        if (!state.sourceImage) {
-          throw new Error("Please upload an image to describe.");
-        }
-        endpoint = "/api/ideogram/describe";
-        // For describe, we need FormData
+      // Always build the common parameters
+      const commonParams = {
+        prompt: effectivePrompt,
+        negative_prompt: state.negativePrompt || undefined,
+        aspect_ratio: state.aspectRatio,
+        style_type: state.styleType,
+        magic_prompt_option: state.magicPrompt,
+        seed: state.seed || undefined,
+        num_images: state.numImages,
+        color_palette: state.colorPalette
+          ? state.colorPalette === "CUSTOM"
+            ? { members: state.customColors.map((c) => ({ color: c })) }
+            : { name: state.colorPalette }
+          : undefined,
+      };
+
+      switch (state.mode) {
+        case "generate":
+          body = commonParams;
+          break;
+
+        case "remix":
+          if (!state.sourceImage) {
+            throw new Error("Please upload an image to remix.");
+          }
+          endpoint = "/api/ideogram/remix";
+          body = {
+            ...commonParams,
+            image_file: state.sourceImage,
+            image_weight: state.imageWeight,
+          };
+          break;
+
+        case "edit":
+          if (!state.sourceImage || !state.maskImage) {
+            throw new Error("Please upload both an image and a mask to edit.");
+          }
+          endpoint = "/api/ideogram/edit";
+          body = {
+            ...commonParams,
+            image_file: state.sourceImage,
+            mask: state.maskImage,
+          };
+          break;
+
+        case "upscale":
+          if (!state.sourceImage) {
+            throw new Error("Please upload an image to upscale.");
+          }
+          endpoint = "/api/ideogram/upscale";
+          body = {
+            image_file: state.sourceImage,
+            prompt: effectivePrompt || undefined,
+          };
+          break;
+
+        case "describe":
+          if (!state.sourceImage) {
+            throw new Error("Please upload an image to describe.");
+          }
+          endpoint = "/api/ideogram/describe";
+          body = {
+            image_file: state.sourceImage,
+          };
+          break;
+
+        default:
+          body = commonParams;
       }
+
+      console.log("Sending request:", { endpoint, body: { ...body, image_file: body.image_file ? "[BASE64]" : undefined } });
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -93,10 +145,13 @@ export function GenerationPanel() {
         // Add to history
         addToHistory({
           state,
-          generatedPrompt,
+          generatedPrompt: effectivePrompt,
           generatedImages: images.map((img: GeneratedImage) => img.url),
           isFavorite: false,
         });
+      } else if (data.descriptions) {
+        // Handle describe response
+        setError(`Prompt: ${data.descriptions[0]?.text || "No description generated"}`);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate image");
@@ -138,6 +193,16 @@ export function GenerationPanel() {
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
+          {/* Current Prompt Preview */}
+          {state.mode === "generate" && (
+            <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg">
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-1">Current Prompt:</p>
+              <p className="text-sm text-zinc-700 dark:text-zinc-300 line-clamp-3">
+                {effectivePrompt || "No prompt yet - describe your subject to get started"}
+              </p>
+            </div>
+          )}
+
           {/* Generation Info */}
           <div className="p-3 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg space-y-2">
             <div className="flex justify-between text-sm">
@@ -178,7 +243,7 @@ export function GenerationPanel() {
           <Button
             onClick={handleGenerate}
             loading={isGenerating}
-            disabled={!generatedPrompt && state.mode === "generate"}
+            disabled={state.mode === "generate" && !effectivePrompt}
             size="lg"
             className="w-full"
           >
