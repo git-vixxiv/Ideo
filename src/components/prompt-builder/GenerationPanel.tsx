@@ -16,6 +16,7 @@ export function GenerationPanel() {
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
+  const [describeResult, setDescribeResult] = useState<string | null>(null);
 
   // Get the effective prompt - either from built prompt or direct subject
   const effectivePrompt = generatedPrompt?.trim() || state.subject?.trim() || "";
@@ -42,6 +43,7 @@ export function GenerationPanel() {
 
     setIsGenerating(true);
     setError(null);
+    setDescribeResult(null);
 
     try {
       let endpoint = "/api/ideogram/generate";
@@ -164,7 +166,14 @@ export function GenerationPanel() {
         });
       } else if (data.descriptions) {
         // Handle describe response
-        setError(`Prompt: ${data.descriptions[0]?.text || "No description generated"}`);
+        const description = data.descriptions[0]?.text || "No description generated";
+        setDescribeResult(description);
+      } else if (data.url) {
+        // Handle single image response (e.g., upscale)
+        setGeneratedImages([{ url: data.url, seed: data.seed || 0 }]);
+      } else {
+        console.error("Unexpected response format:", data);
+        setError("Unexpected response format. Check console for details.");
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate image");
@@ -256,11 +265,21 @@ export function GenerationPanel() {
           <Button
             onClick={handleGenerate}
             loading={isGenerating}
-            disabled={state.mode === "generate" && !effectivePrompt}
+            disabled={
+              (state.mode === "generate" && !effectivePrompt) ||
+              (state.mode === "remix" && !state.sourceImage) ||
+              (state.mode === "edit" && (!state.sourceImage || !state.maskImage)) ||
+              (state.mode === "upscale" && !state.sourceImage) ||
+              (state.mode === "describe" && !state.sourceImage)
+            }
             size="lg"
             className="w-full"
           >
             {isGenerating ? (
+              state.mode === "describe" ? "Analyzing..." :
+              state.mode === "upscale" ? "Upscaling..." :
+              state.mode === "remix" ? "Remixing..." :
+              state.mode === "edit" ? "Editing..." :
               "Generating..."
             ) : (
               <>
@@ -277,7 +296,11 @@ export function GenerationPanel() {
                     d="M13 10V3L4 14h7v7l9-11h-7z"
                   />
                 </svg>
-                Generate with Ideogram
+                {state.mode === "describe" ? "Describe Image" :
+                 state.mode === "upscale" ? "Upscale Image" :
+                 state.mode === "remix" ? "Remix Image" :
+                 state.mode === "edit" ? "Edit Image" :
+                 "Generate with Ideogram"}
               </>
             )}
           </Button>
@@ -285,6 +308,24 @@ export function GenerationPanel() {
           {error && (
             <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
               <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+            </div>
+          )}
+
+          {/* Describe Result */}
+          {describeResult && (
+            <div className="p-3 bg-[#998748]/10 dark:bg-[#998748]/20 rounded-lg border border-[#998748]/30 dark:border-[#998748]/40">
+              <div className="flex items-center justify-between mb-2">
+                <p className="text-xs font-semibold text-[#998748] dark:text-[#d1c69e]">Generated Description:</p>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(describeResult);
+                  }}
+                  className="text-xs text-[#2589bd] hover:underline"
+                >
+                  Copy
+                </button>
+              </div>
+              <p className="text-sm text-zinc-700 dark:text-zinc-300">{describeResult}</p>
             </div>
           )}
 

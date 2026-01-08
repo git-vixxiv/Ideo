@@ -61,6 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     const data = await response.json();
+    console.log("Ideogram describe response:", JSON.stringify(data, null, 2));
     return NextResponse.json(data);
   } catch (error) {
     console.error("Ideogram Describe API error:", error);
