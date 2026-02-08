@@ -4,6 +4,7 @@ import {
   createContext,
   useContext,
   useReducer,
+  useState,
   ReactNode,
   useCallback,
   useEffect,
@@ -15,6 +16,8 @@ import { buildPrompt, generateNegativePrompt } from "./prompt-builder";
 interface PromptContextValue {
   state: PromptBuilderState;
   generatedPrompt: string;
+  optimizedPrompt: string | null;
+  setOptimizedPrompt: (prompt: string | null) => void;
   updateState: <K extends keyof PromptBuilderState>(
     key: K,
     value: PromptBuilderState[K]
@@ -61,6 +64,7 @@ interface PromptProviderProps {
 
 export function PromptProvider({ children }: PromptProviderProps) {
   const [state, dispatch] = useReducer(promptReducer, DEFAULT_PROMPT_STATE);
+  const [optimizedPrompt, setOptimizedPromptState] = useState<string | null>(null);
   const [history, setHistory] = useReducer(
     (
       state: PromptHistoryItem[],
@@ -188,11 +192,22 @@ export function PromptProvider({ children }: PromptProviderProps) {
     setApiKeys({ type: "SET", key, value });
   }, []);
 
+  const setOptimizedPrompt = useCallback((prompt: string | null) => {
+    setOptimizedPromptState(prompt);
+  }, []);
+
+  // Clear optimized prompt when key state fields change
+  useEffect(() => {
+    setOptimizedPromptState(null);
+  }, [state.subject, state.artStyle, state.setting]);
+
   return (
     <PromptContext.Provider
       value={{
         state,
         generatedPrompt,
+        optimizedPrompt,
+        setOptimizedPrompt,
         updateState,
         resetState,
         loadState,

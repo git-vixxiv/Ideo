@@ -8,14 +8,16 @@ import { Textarea } from "@/components/ui/Textarea";
 import { validatePrompt, calculateComplexity } from "@/lib/prompt-builder";
 
 export function PromptPreview() {
-  const { state, generatedPrompt, apiKeys } = usePromptContext();
+  const { state, generatedPrompt, optimizedPrompt: contextOptimizedPrompt, setOptimizedPrompt: setContextOptimizedPrompt, apiKeys } = usePromptContext();
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizedPrompt, setOptimizedPrompt] = useState<string | null>(null);
+  const [promptVariations, setPromptVariations] = useState<string[]>([]);
+  const [selectedVariation, setSelectedVariation] = useState<number | null>(null);
   const [explanation, setExplanation] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [customPrompt, setCustomPrompt] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
+  const [feedback, setFeedback] = useState("");
+  const [showFeedback, setShowFeedback] = useState(false);
+  const [isRefining, setIsRefining] = useState(false);
 
   const validation = validatePrompt(generatedPrompt);
   const complexity = calculateComplexity(state);
@@ -28,6 +30,8 @@ export function PromptPreview() {
 
     setIsOptimizing(true);
     setError(null);
+    setPromptVariations([]);
+    setSelectedVariation(null);
 
     try {
       const response = await fetch("/api/claude", {
@@ -40,6 +44,7 @@ export function PromptPreview() {
           currentPrompt: generatedPrompt,
           state,
           action: "optimize",
+          requestVariations: true,
         }),
       });
 
@@ -51,7 +56,15 @@ export function PromptPreview() {
       const data = await response.json();
       setOptimizedPrompt(data.optimizedPrompt);
       setExplanation(data.explanation);
-      setSuggestions(data.suggestions || []);
+
+      // Set variations if available
+      if (data.variations && data.variations.length > 0) {
+        setPromptVariations(data.variations);
+      } else {
+        // If no variations, use the main prompt as the only option
+        setPromptVariations([data.optimizedPrompt]);
+      }
+      setSelectedVariation(0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to optimize prompt");
     } finally {
@@ -59,11 +72,71 @@ export function PromptPreview() {
     }
   };
 
+  const handleRefine = async () => {
+    if (!feedback.trim() || !apiKeys.claude) return;
+
+    setIsRefining(true);
+    setError(null);
+
+    try {
+      const currentPrompt = selectedVariation !== null && promptVariations[selectedVariation]
+        ? promptVariations[selectedVariation]
+        : optimizedPrompt || generatedPrompt;
+
+      const response = await fetch("/api/claude", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKeys.claude,
+        },
+        body: JSON.stringify({
+          currentPrompt,
+          state,
+          action: "refine",
+          feedback: feedback.trim(),
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to refine prompt");
+      }
+
+      const data = await response.json();
+      setOptimizedPrompt(data.optimizedPrompt);
+      setExplanation(data.explanation);
+
+      // Add the refined prompt as a new variation
+      setPromptVariations(prev => [...prev, data.optimizedPrompt]);
+      setSelectedVariation(promptVariations.length);
+      setFeedback("");
+      setShowFeedback(false);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to refine prompt");
+    } finally {
+      setIsRefining(false);
+    }
+  };
+
+  const handleUsePrompt = () => {
+    const promptToUse = selectedVariation !== null && promptVariations[selectedVariation]
+      ? promptVariations[selectedVariation]
+      : optimizedPrompt || generatedPrompt;
+
+    if (promptToUse && setContextOptimizedPrompt) {
+      setContextOptimizedPrompt(promptToUse);
+    }
+  };
+
   const handleCopy = async (text: string) => {
     await navigator.clipboard.writeText(text);
   };
 
-  const displayPrompt = isEditing ? customPrompt : (optimizedPrompt || generatedPrompt);
+  const displayPrompt = selectedVariation !== null && promptVariations[selectedVariation]
+    ? promptVariations[selectedVariation]
+    : (optimizedPrompt || generatedPrompt);
+
+  const hasOptimizedPrompt = optimizedPrompt || promptVariations.length > 0;
 
   return (
     <Card variant="elevated">
@@ -73,7 +146,7 @@ export function PromptPreview() {
             Prompt Preview
           </h3>
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            Your generated prompt based on the selections above
+            {hasOptimizedPrompt ? "Claude has optimized your prompt" : "Your generated prompt based on the selections above"}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -96,58 +169,48 @@ export function PromptPreview() {
       <CardContent className="space-y-4">
         {/* Prompt Display */}
         <div className="relative">
-          {isEditing ? (
-            <Textarea
-              value={customPrompt}
-              onChange={(e) => setCustomPrompt(e.target.value)}
-              rows={4}
-              placeholder="Edit your prompt..."
-            />
-          ) : (
-            <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700 min-h-[100px]">
-              <p className="text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap">
-                {displayPrompt || "Start building your prompt by filling in the sections above..."}
-              </p>
-            </div>
-          )}
-          <div className="absolute top-2 right-2 flex gap-1">
-            <button
-              onClick={() => {
-                if (isEditing) {
-                  setCustomPrompt("");
-                  setIsEditing(false);
-                } else {
-                  setCustomPrompt(displayPrompt);
-                  setIsEditing(true);
-                }
-              }}
-              className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
-              title={isEditing ? "Cancel edit" : "Edit prompt"}
-            >
-              {isEditing ? (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              ) : (
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              )}
-            </button>
-            <button
-              onClick={() => handleCopy(displayPrompt)}
-              className="p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
-              title="Copy to clipboard"
-            >
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-            </button>
+          <div className="p-4 bg-zinc-50 dark:bg-zinc-800/50 rounded-lg border border-zinc-200 dark:border-zinc-700 min-h-[100px]">
+            <p className="text-zinc-800 dark:text-zinc-200 whitespace-pre-wrap">
+              {displayPrompt || "Start building your prompt by filling in the sections above..."}
+            </p>
           </div>
+          <button
+            onClick={() => handleCopy(displayPrompt)}
+            className="absolute top-2 right-2 p-1.5 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded transition-colors"
+            title="Copy to clipboard"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+          </button>
         </div>
 
+        {/* Prompt Variations */}
+        {promptVariations.length > 1 && (
+          <div className="space-y-2">
+            <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
+              Choose a variation:
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {promptVariations.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setSelectedVariation(index)}
+                  className={`px-3 py-1.5 text-sm rounded-full transition-colors ${
+                    selectedVariation === index
+                      ? "bg-[#998748] text-white"
+                      : "bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                  }`}
+                >
+                  Version {index + 1}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Validation Warnings */}
-        {validation.warnings.length > 0 && (
+        {validation.warnings.length > 0 && !hasOptimizedPrompt && (
           <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-800">
             <ul className="text-sm text-amber-700 dark:text-amber-300 space-y-1">
               {validation.warnings.map((warning, i) => (
@@ -162,20 +225,67 @@ export function PromptPreview() {
           </div>
         )}
 
-        {/* Optimize with Claude */}
+        {/* Action Buttons */}
         <div className="flex gap-2">
-          <Button
-            onClick={handleOptimize}
-            loading={isOptimizing}
-            disabled={!generatedPrompt}
-            className="flex-1"
-          >
-            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-            Optimize with Claude
-          </Button>
+          {!hasOptimizedPrompt ? (
+            <Button
+              onClick={handleOptimize}
+              loading={isOptimizing}
+              disabled={!generatedPrompt}
+              className="flex-1"
+            >
+              <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+              Optimize with Claude
+            </Button>
+          ) : (
+            <>
+              <Button
+                onClick={() => setShowFeedback(!showFeedback)}
+                variant="secondary"
+                className="flex-1"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                {showFeedback ? "Hide Feedback" : "Refine Prompt"}
+              </Button>
+              <Button
+                onClick={handleOptimize}
+                loading={isOptimizing}
+                variant="secondary"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                </svg>
+              </Button>
+            </>
+          )}
         </div>
+
+        {/* Feedback Input */}
+        {showFeedback && (
+          <div className="space-y-3 p-4 bg-[#2589bd]/10 rounded-lg border border-[#2589bd]/30">
+            <p className="text-sm font-medium text-[#2589bd]">
+              How would you like to improve this prompt?
+            </p>
+            <Textarea
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              placeholder="e.g., Make it more dramatic, add more detail about lighting, change the mood to be more mysterious..."
+              rows={3}
+            />
+            <Button
+              onClick={handleRefine}
+              loading={isRefining}
+              disabled={!feedback.trim()}
+              size="sm"
+            >
+              Apply Feedback
+            </Button>
+          </div>
+        )}
 
         {error && (
           <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-lg border border-red-200 dark:border-red-800">
@@ -183,32 +293,36 @@ export function PromptPreview() {
           </div>
         )}
 
-        {/* Optimization Results */}
-        {optimizedPrompt && !isEditing && (
-          <div className="space-y-3 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <span className="font-medium text-green-800 dark:text-green-200">
-                Prompt Optimized by Claude
-              </span>
-            </div>
-            {explanation && (
-              <p className="text-sm text-green-700 dark:text-green-300">{explanation}</p>
-            )}
-            {suggestions.length > 0 && (
+        {/* Claude Explanation */}
+        {explanation && (
+          <div className="p-3 bg-[#998748]/10 rounded-lg border border-[#998748]/30">
+            <p className="text-xs font-medium text-[#998748] mb-1">Claude's Notes:</p>
+            <p className="text-sm text-zinc-600 dark:text-zinc-400">{explanation}</p>
+          </div>
+        )}
+
+        {/* Send to Ideogram CTA */}
+        {hasOptimizedPrompt && (
+          <div className="p-4 bg-gradient-to-r from-[#998748]/20 to-[#d1c69e]/20 rounded-lg border border-[#998748]/30">
+            <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-green-800 dark:text-green-200 mb-1">
-                  Additional Suggestions:
+                <p className="font-medium text-[#1A1A1A] dark:text-[#f4f4f4]">
+                  Ready to generate!
                 </p>
-                <ul className="text-sm text-green-700 dark:text-green-300 list-disc list-inside">
-                  {suggestions.map((suggestion, i) => (
-                    <li key={i}>{suggestion}</li>
-                  ))}
-                </ul>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  Use this optimized prompt with Ideogram
+                </p>
               </div>
-            )}
+              <Button
+                onClick={handleUsePrompt}
+                className="bg-gradient-to-r from-[#998748] to-[#d1c69e] text-[#1A1A1A] hover:opacity-90"
+              >
+                <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Send to Ideogram
+              </Button>
+            </div>
           </div>
         )}
 

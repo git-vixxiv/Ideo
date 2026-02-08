@@ -11,15 +11,15 @@ interface GeneratedImage {
 }
 
 export function GenerationPanel() {
-  const { state, generatedPrompt, apiKeys, addToHistory } = usePromptContext();
+  const { state, generatedPrompt, optimizedPrompt, apiKeys, addToHistory } = usePromptContext();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [describeResult, setDescribeResult] = useState<string | null>(null);
 
-  // Get the effective prompt - either from built prompt or direct subject
-  const effectivePrompt = generatedPrompt?.trim() || state.subject?.trim() || "";
+  // Get the effective prompt - prefer optimized, then generated, then subject
+  const effectivePrompt = optimizedPrompt?.trim() || generatedPrompt?.trim() || state.subject?.trim() || "";
 
   const handleGenerate = async () => {
     if (!apiKeys.ideogram) {
