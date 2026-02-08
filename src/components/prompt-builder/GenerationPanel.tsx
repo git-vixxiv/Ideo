@@ -145,7 +145,7 @@ export function GenerationPanel() {
             url: (img.url || img.image_url || img.image || "") as string,
             seed: (img.seed || 0) as number,
           }))
-          .filter((img) => img.url && img.url.length > 0);
+          .filter((img: { url: string; seed: number }) => img.url && img.url.length > 0);
 
         console.log("Parsed images:", images);
 
