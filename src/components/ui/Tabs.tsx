@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, ReactNode } from "react";
+import { createContext, useContext, useState, ReactNode, useEffect } from "react";
 
 interface TabsContextValue {
   activeTab: string;
@@ -18,18 +18,32 @@ function useTabsContext() {
 }
 
 interface TabsProps {
-  defaultValue: string;
+  defaultValue?: string;
+  value?: string;
+  onValueChange?: (value: string) => void;
   children: ReactNode;
   className?: string;
   onChange?: (value: string) => void;
 }
 
-export function Tabs({ defaultValue, children, className = "", onChange }: TabsProps) {
-  const [activeTab, setActiveTab] = useState(defaultValue);
+export function Tabs({ defaultValue, value, onValueChange, children, className = "", onChange }: TabsProps) {
+  const [internalActiveTab, setInternalActiveTab] = useState(value || defaultValue || "");
 
-  const handleSetActiveTab = (value: string) => {
-    setActiveTab(value);
-    onChange?.(value);
+  // Sync with external value if controlled
+  useEffect(() => {
+    if (value !== undefined) {
+      setInternalActiveTab(value);
+    }
+  }, [value]);
+
+  const activeTab = value !== undefined ? value : internalActiveTab;
+
+  const handleSetActiveTab = (newValue: string) => {
+    if (value === undefined) {
+      setInternalActiveTab(newValue);
+    }
+    onValueChange?.(newValue);
+    onChange?.(newValue);
   };
 
   return (
