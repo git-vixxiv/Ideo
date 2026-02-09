@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getIdeogramApiKey } from "@/lib/api-keys";
 
 const IDEOGRAM_API_URL = "https://api.ideogram.ai/upscale";
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = request.headers.get("x-api-key");
+    const apiKey = await getIdeogramApiKey(request);
 
     if (!apiKey) {
       return NextResponse.json(

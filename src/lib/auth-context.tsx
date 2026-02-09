@@ -19,21 +19,23 @@ interface UserProfile {
   created_at: string;
 }
 
-interface UserSettings {
-  claude_api_key?: string;
-  ideogram_api_key?: string;
+// Only track whether keys are set, never the actual values
+interface ApiKeyStatus {
+  hasClaudeKey: boolean;
+  hasIdeogramKey: boolean;
 }
 
 interface AuthContextValue {
   user: User | null;
   profile: UserProfile | null;
   session: Session | null;
-  settings: UserSettings | null;
+  apiKeyStatus: ApiKeyStatus;
   isLoading: boolean;
   isConfigured: boolean;
   signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
-  updateSettings: (settings: Partial<UserSettings>) => Promise<void>;
+  saveApiKeys: (claudeKey?: string, ideogramKey?: string) => Promise<void>;
+  refreshApiKeyStatus: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
@@ -43,7 +45,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [settings, setSettings] = useState<UserSettings | null>(null);
+  const [apiKeyStatus, setApiKeyStatus] = useState<ApiKeyStatus>({
+    hasClaudeKey: false,
+    hasIdeogramKey: false,
+  });
   const [isLoading, setIsLoading] = useState(true);
   const isConfigured = isSupabaseConfigured();
 
@@ -66,24 +71,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return data as UserProfile;
   }, [isConfigured]);
 
-  // Fetch user settings (API keys, etc.)
-  const fetchSettings = useCallback(async (userId: string) => {
-    if (!isConfigured) return null;
-
-    const supabase = createClient();
-    const { data, error } = await supabase
-      .from("user_settings")
-      .select("claude_api_key, ideogram_api_key")
-      .eq("user_id", userId)
-      .single();
-
-    if (error && error.code !== "PGRST116") {
-      console.error("Error fetching settings:", error);
-      return null;
+  // Fetch API key status from secure endpoint (only returns booleans)
+  const fetchApiKeyStatus = useCallback(async () => {
+    try {
+      const response = await fetch("/api/settings");
+      if (response.ok) {
+        const data = await response.json();
+        return {
+          hasClaudeKey: data.hasClaudeKey || false,
+          hasIdeogramKey: data.hasIdeogramKey || false,
+        };
+      }
+    } catch (error) {
+      console.error("Error fetching API key status:", error);
     }
-
-    return data as UserSettings | null;
-  }, [isConfigured]);
+    return { hasClaudeKey: false, hasIdeogramKey: false };
+  }, []);
 
   // Initialize auth state
   useEffect(() => {
@@ -100,12 +103,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        const [profileData, settingsData] = await Promise.all([
+        const [profileData, keyStatus] = await Promise.all([
           fetchProfile(session.user.id),
-          fetchSettings(session.user.id),
+          fetchApiKeyStatus(),
         ]);
         setProfile(profileData);
-        setSettings(settingsData);
+        setApiKeyStatus(keyStatus);
       }
 
       setIsLoading(false);
@@ -119,22 +122,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(session?.user ?? null);
 
       if (session?.user) {
-        const [profileData, settingsData] = await Promise.all([
+        const [profileData, keyStatus] = await Promise.all([
           fetchProfile(session.user.id),
-          fetchSettings(session.user.id),
+          fetchApiKeyStatus(),
         ]);
         setProfile(profileData);
-        setSettings(settingsData);
+        setApiKeyStatus(keyStatus);
       } else {
         setProfile(null);
-        setSettings(null);
+        setApiKeyStatus({ hasClaudeKey: false, hasIdeogramKey: false });
       }
 
       setIsLoading(false);
     });
 
     return () => subscription.unsubscribe();
-  }, [isConfigured, fetchProfile, fetchSettings]);
+  }, [isConfigured, fetchProfile, fetchApiKeyStatus]);
 
   // Sign in with Google
   const signInWithGoogle = async () => {
@@ -172,30 +175,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
     setProfile(null);
     setSession(null);
-    setSettings(null);
+    setApiKeyStatus({ hasClaudeKey: false, hasIdeogramKey: false });
   };
 
-  // Update user settings
-  const updateSettings = async (newSettings: Partial<UserSettings>) => {
-    if (!isConfigured || !user) return;
-
-    const supabase = createClient();
-
-    const { error } = await supabase
-      .from("user_settings")
-      .upsert({
-        user_id: user.id,
-        ...settings,
-        ...newSettings,
-        updated_at: new Date().toISOString(),
-      });
-
-    if (error) {
-      console.error("Error updating settings:", error);
-      throw error;
+  // Save API keys securely via server endpoint
+  const saveApiKeys = async (claudeKey?: string, ideogramKey?: string) => {
+    if (!user) {
+      throw new Error("Must be logged in to save API keys");
     }
 
-    setSettings((prev) => ({ ...prev, ...newSettings }));
+    const response = await fetch("/api/settings", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        claudeApiKey: claudeKey,
+        ideogramApiKey: ideogramKey,
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.error || "Failed to save API keys");
+    }
+
+    const data = await response.json();
+    setApiKeyStatus({
+      hasClaudeKey: data.hasClaudeKey || false,
+      hasIdeogramKey: data.hasIdeogramKey || false,
+    });
+  };
+
+  // Refresh API key status
+  const refreshApiKeyStatus = async () => {
+    if (!user) return;
+    const status = await fetchApiKeyStatus();
+    setApiKeyStatus(status);
   };
 
   // Refresh profile data
@@ -212,12 +228,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         profile,
         session,
-        settings,
+        apiKeyStatus,
         isLoading,
         isConfigured,
         signInWithGoogle,
         signOut,
-        updateSettings,
+        saveApiKeys,
+        refreshApiKeyStatus,
         refreshProfile,
       }}
     >

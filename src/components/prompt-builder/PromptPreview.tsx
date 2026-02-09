@@ -2,13 +2,15 @@
 
 import { useState } from "react";
 import { usePromptContext } from "@/lib/prompt-context";
+import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Textarea } from "@/components/ui/Textarea";
 import { validatePrompt, calculateComplexity } from "@/lib/prompt-builder";
 
 export function PromptPreview() {
-  const { state, generatedPrompt, optimizedPrompt: contextOptimizedPrompt, setOptimizedPrompt: setContextOptimizedPrompt, apiKeys } = usePromptContext();
+  const { state, generatedPrompt, optimizedPrompt: contextOptimizedPrompt, setOptimizedPrompt: setContextOptimizedPrompt, apiKeys, hasApiKeys } = usePromptContext();
+  const { user } = useAuth();
   const [isOptimizing, setIsOptimizing] = useState(false);
   const [optimizedPrompt, setOptimizedPrompt] = useState<string | null>(null);
   const [promptVariations, setPromptVariations] = useState<string[]>([]);
@@ -23,7 +25,7 @@ export function PromptPreview() {
   const complexity = calculateComplexity(state);
 
   const handleOptimize = async () => {
-    if (!apiKeys.claude) {
+    if (!hasApiKeys.claude) {
       setError("Please add your Claude API key in settings first.");
       return;
     }
@@ -34,12 +36,17 @@ export function PromptPreview() {
     setSelectedVariation(null);
 
     try {
+      // Build headers - only include API key for local mode (server handles it for logged-in users)
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (!user && apiKeys.claude) {
+        headers["x-api-key"] = apiKeys.claude;
+      }
+
       const response = await fetch("/api/claude", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKeys.claude,
-        },
+        headers,
         body: JSON.stringify({
           currentPrompt: generatedPrompt,
           state,
@@ -73,7 +80,7 @@ export function PromptPreview() {
   };
 
   const handleRefine = async () => {
-    if (!feedback.trim() || !apiKeys.claude) return;
+    if (!feedback.trim() || !hasApiKeys.claude) return;
 
     setIsRefining(true);
     setError(null);
@@ -83,12 +90,17 @@ export function PromptPreview() {
         ? promptVariations[selectedVariation]
         : optimizedPrompt || generatedPrompt;
 
+      // Build headers - only include API key for local mode (server handles it for logged-in users)
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (!user && apiKeys.claude) {
+        headers["x-api-key"] = apiKeys.claude;
+      }
+
       const response = await fetch("/api/claude", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKeys.claude,
-        },
+        headers,
         body: JSON.stringify({
           currentPrompt,
           state,

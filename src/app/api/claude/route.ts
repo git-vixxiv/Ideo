@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase-server";
+import { decrypt } from "@/lib/encryption";
 
 const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
 
@@ -26,9 +28,41 @@ const SYSTEM_PROMPT = `You are an expert Ideogram prompt engineer. Your role is 
 
 Be concise but thorough. Focus on practical improvements that will yield better results.`;
 
+async function getApiKey(request: NextRequest): Promise<string | null> {
+  // First, try to get the key from the authenticated user's stored settings
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data: settings } = await supabase
+        .from("user_settings")
+        .select("claude_api_key")
+        .eq("user_id", user.id)
+        .single();
+
+      if (settings?.claude_api_key) {
+        try {
+          return decrypt(settings.claude_api_key);
+        } catch {
+          // Key might not be encrypted (legacy), try using it directly
+          return settings.claude_api_key;
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching user API key:", error);
+  }
+
+  // Fallback to header for local mode (non-authenticated users)
+  return request.headers.get("x-api-key");
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = request.headers.get("x-api-key");
+    const apiKey = await getApiKey(request);
 
     if (!apiKey) {
       return NextResponse.json(

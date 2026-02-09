@@ -11,7 +11,7 @@ import {
 } from "react";
 import type { PromptBuilderState, PromptHistoryItem } from "@/types/prompt";
 import { DEFAULT_PROMPT_STATE } from "./constants";
-import { buildPrompt, generateNegativePrompt } from "./prompt-builder";
+import { buildPrompt } from "./prompt-builder";
 import { useAuth } from "./auth-context";
 
 interface PromptContextValue {
@@ -29,11 +29,18 @@ interface PromptContextValue {
   addToHistory: (item: Omit<PromptHistoryItem, "id" | "timestamp">) => void;
   toggleFavorite: (id: string) => void;
   clearHistory: () => void;
+  // For logged-in users: indicates if keys are stored server-side
+  // For local mode: contains the actual keys from localStorage
   apiKeys: {
     claude: string;
     ideogram: string;
   };
-  setApiKey: (key: "claude" | "ideogram", value: string) => void;
+  // Indicates whether API keys are available (either server-side or local)
+  hasApiKeys: {
+    claude: boolean;
+    ideogram: boolean;
+  };
+  setApiKey: (key: "claude" | "ideogram", value: string) => Promise<void>;
 }
 
 const PromptContext = createContext<PromptContextValue | null>(null);
@@ -64,7 +71,7 @@ interface PromptProviderProps {
 }
 
 export function PromptProvider({ children }: PromptProviderProps) {
-  const { user, settings, updateSettings, isConfigured } = useAuth();
+  const { user, apiKeyStatus, saveApiKeys } = useAuth();
   const [state, dispatch] = useReducer(promptReducer, DEFAULT_PROMPT_STATE);
   const [optimizedPrompt, setOptimizedPromptState] = useState<string | null>(null);
   const [history, setHistory] = useReducer(
@@ -78,7 +85,7 @@ export function PromptProvider({ children }: PromptProviderProps) {
     ) => {
       switch (action.type) {
         case "ADD":
-          return [action.item, ...state].slice(0, 50); // Keep last 50 items
+          return [action.item, ...state].slice(0, 50);
         case "TOGGLE_FAVORITE":
           return state.map((item) =>
             item.id === action.id
@@ -96,6 +103,7 @@ export function PromptProvider({ children }: PromptProviderProps) {
     []
   );
 
+  // Local API keys for non-authenticated users only
   const [localApiKeys, setLocalApiKeys] = useReducer(
     (
       state: { claude: string; ideogram: string },
@@ -109,13 +117,19 @@ export function PromptProvider({ children }: PromptProviderProps) {
     { claude: "", ideogram: "" }
   );
 
-  // Compute effective API keys: prefer auth context when logged in, fallback to localStorage
-  const apiKeys = {
-    claude: (user && settings?.claude_api_key) || localApiKeys.claude,
-    ideogram: (user && settings?.ideogram_api_key) || localApiKeys.ideogram,
+  // For logged-in users, we don't expose actual keys - server handles them
+  // For local mode, we use localStorage keys
+  const apiKeys = user
+    ? { claude: "", ideogram: "" }  // Never expose actual keys for logged-in users
+    : localApiKeys;
+
+  // Track whether keys are available
+  const hasApiKeys = {
+    claude: user ? apiKeyStatus.hasClaudeKey : !!localApiKeys.claude,
+    ideogram: user ? apiKeyStatus.hasIdeogramKey : !!localApiKeys.ideogram,
   };
 
-  // Load from localStorage on mount (only for non-authenticated users or as fallback)
+  // Load from localStorage on mount (for local mode only)
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedHistory = localStorage.getItem("ideogram-prompt-history");
@@ -197,19 +211,17 @@ export function PromptProvider({ children }: PromptProviderProps) {
   }, []);
 
   const setApiKey = useCallback(async (key: "claude" | "ideogram", value: string) => {
-    // If user is logged in, save to database
-    if (user && isConfigured) {
-      try {
-        const dbKey = key === "claude" ? "claude_api_key" : "ideogram_api_key";
-        await updateSettings({ [dbKey]: value });
-      } catch (err) {
-        console.error("Failed to save API key to database:", err);
-        // Still update local state as fallback
-      }
+    if (user) {
+      // For logged-in users, save securely via server
+      await saveApiKeys(
+        key === "claude" ? value : undefined,
+        key === "ideogram" ? value : undefined
+      );
+    } else {
+      // For local mode, save to localStorage
+      setLocalApiKeys({ type: "SET", key, value });
     }
-    // Always update local state (for immediate UI response and fallback)
-    setLocalApiKeys({ type: "SET", key, value });
-  }, [user, isConfigured, updateSettings]);
+  }, [user, saveApiKeys]);
 
   const setOptimizedPrompt = useCallback((prompt: string | null) => {
     setOptimizedPromptState(prompt);
@@ -235,6 +247,7 @@ export function PromptProvider({ children }: PromptProviderProps) {
         toggleFavorite,
         clearHistory,
         apiKeys,
+        hasApiKeys,
         setApiKey,
       }}
     >

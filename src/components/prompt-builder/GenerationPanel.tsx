@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { usePromptContext } from "@/lib/prompt-context";
+import { useAuth } from "@/lib/auth-context";
 import { Card, CardContent, CardHeader } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 
@@ -11,7 +12,8 @@ interface GeneratedImage {
 }
 
 export function GenerationPanel() {
-  const { state, generatedPrompt, optimizedPrompt, apiKeys, addToHistory } = usePromptContext();
+  const { state, generatedPrompt, optimizedPrompt, apiKeys, hasApiKeys, addToHistory } = usePromptContext();
+  const { user } = useAuth();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImages, setGeneratedImages] = useState<GeneratedImage[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -22,7 +24,7 @@ export function GenerationPanel() {
   const effectivePrompt = optimizedPrompt?.trim() || generatedPrompt?.trim() || state.subject?.trim() || "";
 
   const handleGenerate = async () => {
-    if (!apiKeys.ideogram) {
+    if (!hasApiKeys.ideogram) {
       setError("Please add your Ideogram API key in settings first.");
       return;
     }
@@ -121,12 +123,17 @@ export function GenerationPanel() {
 
       console.log("Sending request:", { endpoint, body: { ...body, image_file: body.image_file ? "[BASE64]" : undefined } });
 
+      // Build headers - only include API key for local mode (server handles it for logged-in users)
+      const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+      };
+      if (!user && apiKeys.ideogram) {
+        headers["x-ideogram-key"] = apiKeys.ideogram;
+      }
+
       const response = await fetch(endpoint, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "x-api-key": apiKeys.ideogram,
-        },
+        headers,
         body: JSON.stringify(body),
       });
 
@@ -329,7 +336,7 @@ export function GenerationPanel() {
             </div>
           )}
 
-          {!apiKeys.ideogram && (
+          {!hasApiKeys.ideogram && (
             <p className="text-xs text-center text-zinc-500 dark:text-zinc-400">
               Add your Ideogram API key in settings to generate images
             </p>

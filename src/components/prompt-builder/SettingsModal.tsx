@@ -11,34 +11,53 @@ interface SettingsModalProps {
 
 export function SettingsModal({ onClose }: SettingsModalProps) {
   const { user, isConfigured, signInWithGoogle } = useAuth();
-  const { apiKeys, setApiKey, resetState } = usePromptContext();
-  const [claudeKey, setClaudeKey] = useState(apiKeys.claude);
-  const [ideogramKey, setIdeogramKey] = useState(apiKeys.ideogram);
+  const { apiKeys, hasApiKeys, setApiKey, resetState } = usePromptContext();
+
+  // For logged-in users, start with empty fields (keys are stored server-side)
+  // For local mode, start with actual values
+  const [claudeKey, setClaudeKey] = useState(user ? "" : apiKeys.claude);
+  const [ideogramKey, setIdeogramKey] = useState(user ? "" : apiKeys.ideogram);
   const [showClaudeKey, setShowClaudeKey] = useState(false);
   const [showIdeogramKey, setShowIdeogramKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
-  // Sync form values with context when apiKeys change (e.g., after login)
+  // Sync form values with context when apiKeys change (only for local mode)
   useEffect(() => {
-    setClaudeKey(apiKeys.claude || "");
-    setIdeogramKey(apiKeys.ideogram || "");
-  }, [apiKeys.claude, apiKeys.ideogram]);
+    if (!user) {
+      setClaudeKey(apiKeys.claude || "");
+      setIdeogramKey(apiKeys.ideogram || "");
+    }
+  }, [apiKeys.claude, apiKeys.ideogram, user]);
 
   const handleSave = async () => {
     setIsSaving(true);
     setSaveSuccess(false);
+    setSaveError(null);
 
     try {
-      // Save both keys (async when logged in, sync when not)
-      await setApiKey("claude", claudeKey);
-      await setApiKey("ideogram", ideogramKey);
+      // Only save keys that have been entered
+      if (claudeKey) {
+        await setApiKey("claude", claudeKey);
+      }
+      if (ideogramKey) {
+        await setApiKey("ideogram", ideogramKey);
+      }
+
+      // Clear the input fields after saving (for security)
+      if (user) {
+        setClaudeKey("");
+        setIdeogramKey("");
+      }
+
       setSaveSuccess(true);
       setTimeout(() => {
         onClose();
       }, 1000);
     } catch (err) {
       console.error("Failed to save settings:", err);
+      setSaveError(err instanceof Error ? err.message : "Failed to save settings");
     } finally {
       setIsSaving(false);
     }
@@ -53,7 +72,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
               Settings
             </h2>
             <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">
-              {user ? "API keys stored in your account" : "API keys stored locally"}
+              {user ? "API keys encrypted & stored securely" : "API keys stored locally in browser"}
             </p>
           </div>
           <button
@@ -72,14 +91,14 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             <div className="p-4 bg-[#998748]/10 border border-[#998748]/30 rounded-xl">
               <div className="flex items-start gap-3">
                 <svg className="w-5 h-5 text-[#998748] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                 </svg>
                 <div className="flex-1">
                   <p className="text-sm font-medium text-[#1A1A1A] dark:text-[#f4f4f4]">
-                    Sign in to save API keys to your account
+                    Sign in for secure encrypted storage
                   </p>
                   <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                    Your keys will be securely stored and available on any device.
+                    Your keys will be encrypted and stored securely on our servers.
                   </p>
                   <Button
                     variant="primary"
@@ -110,7 +129,7 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                   Signed in as {user.email}
                 </p>
                 <p className="text-xs text-green-600 dark:text-green-400">
-                  API keys are stored securely in your account
+                  Keys are encrypted with AES-256-GCM before storage
                 </p>
               </div>
             </div>
@@ -124,15 +143,25 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
             {/* Claude API Key */}
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-                Claude API Key
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Claude API Key
+                </label>
+                {user && hasApiKeys.claude && (
+                  <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Configured
+                  </span>
+                )}
+              </div>
               <div className="relative">
                 <input
                   type={showClaudeKey ? "text" : "password"}
                   value={claudeKey}
                   onChange={(e) => setClaudeKey(e.target.value)}
-                  placeholder="sk-ant-..."
+                  placeholder={user && hasApiKeys.claude ? "Enter new key to replace existing" : "sk-ant-..."}
                   className="w-full px-3 py-2 pr-16 bg-white dark:bg-[#242424] border border-zinc-200 dark:border-[#3a3a3a] rounded-lg text-[#1A1A1A] dark:text-[#f4f4f4] placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#998748]"
                 />
                 <button
@@ -158,15 +187,25 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
 
             {/* Ideogram API Key */}
             <div>
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1.5">
-                Ideogram API Key
-              </label>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300">
+                  Ideogram API Key
+                </label>
+                {user && hasApiKeys.ideogram && (
+                  <span className="text-xs text-green-600 dark:text-green-400 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    Configured
+                  </span>
+                )}
+              </div>
               <div className="relative">
                 <input
                   type={showIdeogramKey ? "text" : "password"}
                   value={ideogramKey}
                   onChange={(e) => setIdeogramKey(e.target.value)}
-                  placeholder="Enter your Ideogram API key"
+                  placeholder={user && hasApiKeys.ideogram ? "Enter new key to replace existing" : "Enter your Ideogram API key"}
                   className="w-full px-3 py-2 pr-16 bg-white dark:bg-[#242424] border border-zinc-200 dark:border-[#3a3a3a] rounded-lg text-[#1A1A1A] dark:text-[#f4f4f4] placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#998748]"
                 />
                 <button
@@ -217,7 +256,15 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
-                Settings saved!
+                Settings saved securely!
+              </span>
+            )}
+            {saveError && (
+              <span className="flex items-center gap-2 text-red-600 dark:text-red-400">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                {saveError}
               </span>
             )}
           </div>
@@ -225,7 +272,11 @@ export function SettingsModal({ onClose }: SettingsModalProps) {
             <Button variant="secondary" onClick={onClose}>
               Cancel
             </Button>
-            <Button onClick={handleSave} loading={isSaving}>
+            <Button
+              onClick={handleSave}
+              loading={isSaving}
+              disabled={!claudeKey && !ideogramKey}
+            >
               Save Settings
             </Button>
           </div>
