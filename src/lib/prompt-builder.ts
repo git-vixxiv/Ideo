@@ -3,6 +3,7 @@
 import type { PromptBuilderState } from "@/types/prompt";
 import {
   ART_STYLES,
+  ANIMATION_STYLES,
   MOODS,
   LIGHTING_OPTIONS,
   COMPOSITIONS,
@@ -39,10 +40,16 @@ export function buildPrompt(state: PromptBuilderState): string {
     parts.push(`in ${state.setting}`);
   }
 
-  // 3. Art Style (one primary style)
-  const artStyle = ART_STYLES.find((s) => s.id === state.artStyle);
-  if (artStyle) {
-    parts.push(`${artStyle.keywords[0]} style`);
+  // 3. Animation Style (takes priority if selected)
+  const animationStyle = ANIMATION_STYLES.find((s) => s.id === state.animationStyle);
+  if (animationStyle) {
+    parts.push(animationStyle.promptText);
+  } else {
+    // 3b. Art Style (one primary style, only if no animation style)
+    const artStyle = ART_STYLES.find((s) => s.id === state.artStyle);
+    if (artStyle) {
+      parts.push(`${artStyle.keywords[0]} style`);
+    }
   }
 
   // 4. Mood/Atmosphere
@@ -205,7 +212,7 @@ export function calculateComplexity(state: PromptBuilderState): number {
   if (state.subject) score += 20;
   if (state.action) score += 10;
   if (state.setting) score += 10;
-  if (state.artStyle) score += 15;
+  if (state.artStyle || state.animationStyle) score += 15;
   if (state.mood) score += 10;
   if (state.lighting) score += 10;
   if (state.composition) score += 5;

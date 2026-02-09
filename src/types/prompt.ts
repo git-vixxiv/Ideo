@@ -44,6 +44,13 @@ export interface CompositionOption {
   keywords: string[];
 }
 
+export interface AnimationStyle {
+  id: string;
+  name: string;
+  promptText: string;
+  category: "western" | "anime" | "video_game" | "other";
+}
+
 export interface PromptBuilderState {
   // Generation Mode
   mode: GenerationMode;
@@ -57,6 +64,7 @@ export interface PromptBuilderState {
   // Style & Aesthetic
   styleType: StyleType;
   artStyle: string;
+  animationStyle: string;
   mood: string;
   lighting: string;
   colorScheme: string;

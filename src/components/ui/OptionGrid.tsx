@@ -15,6 +15,7 @@ interface OptionGridProps {
   columns?: 2 | 3 | 4 | 5;
   size?: "sm" | "md" | "lg";
   className?: string;
+  disabled?: boolean;
 }
 
 export function OptionGrid({
@@ -25,6 +26,7 @@ export function OptionGrid({
   columns = 3,
   size = "md",
   className = "",
+  disabled = false,
 }: OptionGridProps) {
   const gridCols = {
     2: "grid-cols-2",
@@ -52,9 +54,12 @@ export function OptionGrid({
           return (
             <button
               key={option.id}
-              onClick={() => onChange(isSelected ? "" : option.id)}
+              onClick={() => !disabled && onChange(isSelected ? "" : option.id)}
+              disabled={disabled}
               className={`${sizes[size]} rounded-lg border-2 transition-all duration-200 text-left ${
-                isSelected
+                disabled
+                  ? "border-zinc-200 dark:border-[#2a2a2a] bg-zinc-100 dark:bg-[#1a1a1a] opacity-50 cursor-not-allowed"
+                  : isSelected
                   ? "border-[#998748] bg-[#d1c69e]/20 dark:bg-[#998748]/20"
                   : "border-zinc-200 dark:border-[#3a3a3a] hover:border-[#998748] dark:hover:border-[#998748]"
               }`}

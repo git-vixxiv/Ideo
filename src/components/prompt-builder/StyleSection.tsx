@@ -3,6 +3,7 @@
 import { usePromptContext } from "@/lib/prompt-context";
 import { OptionGrid } from "@/components/ui/OptionGrid";
 import { ColorPicker } from "@/components/ui/ColorPicker";
+import { AnimationStyleSelector } from "./AnimationStyleSelector";
 import { ART_STYLES, MOODS, LIGHTING_OPTIONS, STYLE_TYPE_OPTIONS } from "@/lib/constants";
 import type { StyleType, ColorPalettePreset } from "@/types/ideogram";
 
@@ -56,7 +57,19 @@ export function StyleSection() {
         onChange={(value) => updateState("artStyle", value)}
         columns={4}
         size="sm"
+        disabled={!!state.animationStyle}
       />
+
+      {/* Animation Style */}
+      <AnimationStyleSelector />
+
+      {state.animationStyle && (
+        <div className="p-3 bg-[#2589bd]/10 rounded-lg border border-[#2589bd]/30">
+          <p className="text-xs text-[#2589bd]">
+            Animation style is active and will override the Art Style selection above.
+          </p>
+        </div>
+      )}
 
       {/* Mood */}
       <OptionGrid

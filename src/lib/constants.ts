@@ -6,6 +6,7 @@ import type {
   MoodOption,
   LightingOption,
   CompositionOption,
+  AnimationStyle,
 } from "@/types/prompt";
 import type { AspectRatio, StyleType, RenderingSpeed, ColorPalettePreset } from "@/types/ideogram";
 
@@ -325,6 +326,72 @@ export const COLOR_PALETTE_PRESETS: { value: ColorPalettePreset; label: string; 
   { value: "ULTRAMARINE", label: "Ultramarine", colors: ["#1A237E", "#303F9F", "#3F51B5", "#5C6BC0"] },
 ];
 
+// Animation Styles (based on popular cartoons and anime)
+export const ANIMATION_STYLES: AnimationStyle[] = [
+  // Western Animation - Classic
+  { id: "futurama", name: "Futurama", promptText: "in Futurama animation style, Matt Groening art style, simple outlines, bold colors, overbite characters", category: "western" },
+  { id: "family_guy", name: "Family Guy", promptText: "in Family Guy animation style, Seth MacFarlane style, round heads, simple features, thick outlines", category: "western" },
+  { id: "south_park", name: "South Park", promptText: "in South Park animation style, construction paper cutout style, simple shapes, flat colors, minimalist features", category: "western" },
+  { id: "simpsons", name: "The Simpsons", promptText: "in The Simpsons animation style, yellow skin, overbite, Matt Groening style, bold outlines", category: "western" },
+  { id: "american_dad", name: "American Dad", promptText: "in American Dad animation style, Seth MacFarlane style, realistic proportions, clean lines", category: "western" },
+  { id: "bobs_burgers", name: "Bob's Burgers", promptText: "in Bob's Burgers animation style, Loren Bouchard style, simple features, no chin, round ears", category: "western" },
+  { id: "archer", name: "Archer", promptText: "in Archer animation style, sleek art deco inspired, realistic proportions, bold lines, limited shading", category: "western" },
+  { id: "rick_and_morty", name: "Rick and Morty", promptText: "in Rick and Morty animation style, Justin Roiland style, drippy lines, exaggerated expressions, sci-fi aesthetic", category: "western" },
+
+  // Western Animation - Kids/Cartoon Network
+  { id: "powerpuff_girls", name: "Powerpuff Girls", promptText: "in Powerpuff Girls animation style, Craig McCracken style, huge eyes, tiny body, no fingers, bold colors", category: "western" },
+  { id: "dexters_lab", name: "Dexter's Laboratory", promptText: "in Dexter's Laboratory animation style, Genndy Tartakovsky style, angular shapes, exaggerated proportions", category: "western" },
+  { id: "samurai_jack", name: "Samurai Jack", promptText: "in Samurai Jack animation style, Genndy Tartakovsky style, geometric shapes, bold shadows, minimal lines", category: "western" },
+  { id: "fairly_oddparents", name: "Fairly OddParents", promptText: "in Fairly OddParents animation style, Butch Hartman style, angular shapes, bright colors, big heads", category: "western" },
+  { id: "danny_phantom", name: "Danny Phantom", promptText: "in Danny Phantom animation style, Butch Hartman style, angular features, dynamic poses, glowing effects", category: "western" },
+  { id: "johnny_test", name: "Johnny Test", promptText: "in Johnny Test animation style, flash animation style, flame-shaped hair, bold outlines", category: "western" },
+  { id: "knd", name: "Kids Next Door", promptText: "in Codename Kids Next Door animation style, Tom Warburton style, diverse body types, chunky designs", category: "western" },
+  { id: "teen_titans", name: "Teen Titans", promptText: "in Teen Titans 2003 animation style, anime-influenced, dynamic action poses, dramatic lighting", category: "western" },
+  { id: "teen_titans_go", name: "Teen Titans Go!", promptText: "in Teen Titans Go animation style, chibi style, simple shapes, bright colors, comedic expressions", category: "western" },
+  { id: "gravity_falls", name: "Gravity Falls", promptText: "in Gravity Falls animation style, Alex Hirsch style, rounded features, expressive eyes, mystery aesthetic", category: "western" },
+  { id: "spongebob", name: "SpongeBob SquarePants", promptText: "in SpongeBob SquarePants animation style, Stephen Hillenburg style, underwater aesthetic, exaggerated expressions", category: "western" },
+  { id: "invader_zim", name: "Invader Zim", promptText: "in Invader Zim animation style, Jhonen Vasquez style, angular gothic style, green and purple palette, alien aesthetic", category: "western" },
+
+  // Western Animation - Nickelodeon
+  { id: "hey_arnold", name: "Hey Arnold!", promptText: "in Hey Arnold animation style, Craig Bartlett style, football-shaped head, urban setting, jazzy aesthetic", category: "western" },
+  { id: "scooby_doo", name: "Scooby-Doo", promptText: "in Scooby-Doo animation style, Hanna-Barbera style, mystery aesthetic, 70s color palette", category: "western" },
+  { id: "kim_possible", name: "Kim Possible", promptText: "in Kim Possible animation style, sleek action style, dynamic poses, teen spy aesthetic", category: "western" },
+  { id: "phineas_ferb", name: "Phineas and Ferb", promptText: "in Phineas and Ferb animation style, Dan Povenmire style, triangular and rectangular heads, bright summer colors", category: "western" },
+  { id: "total_drama", name: "Total Drama", promptText: "in Total Drama Island animation style, reality TV parody style, exaggerated features, teen character designs", category: "western" },
+  { id: "6teen", name: "6teen", promptText: "in 6teen animation style, Canadian flash animation, mall setting, teen slice of life aesthetic", category: "western" },
+
+  // Western Animation - Other
+  { id: "peanuts", name: "Peanuts", promptText: "in Peanuts animation style, Charles Schulz style, round heads, simple dot eyes, vintage comic strip aesthetic", category: "western" },
+  { id: "garfield", name: "Garfield", promptText: "in Garfield animation style, Jim Davis style, chunky cat design, lasagna lover, orange tabby", category: "western" },
+  { id: "happy_tree_friends", name: "Happy Tree Friends", promptText: "in Happy Tree Friends animation style, cute forest creatures, pastel colors, deceptively cute aesthetic", category: "western" },
+  { id: "code_lyoko", name: "Code Lyoko", promptText: "in Code Lyoko animation style, French anime-influenced, 2D and 3D hybrid, virtual world aesthetic", category: "western" },
+  { id: "totally_spies", name: "Totally Spies", promptText: "in Totally Spies animation style, French spy animation, fashion-forward, colorful spy gadgets", category: "western" },
+  { id: "teenage_robot", name: "My Life as a Teenage Robot", promptText: "in My Life as a Teenage Robot animation style, retro-futuristic, 1950s aesthetic, robot girl design", category: "western" },
+  { id: "winx_club", name: "Winx Club", promptText: "in Winx Club animation style, Italian magical girl, fashion fairy aesthetic, sparkles and wings", category: "western" },
+  { id: "monster_high", name: "Monster High", promptText: "in Monster High animation style, monster teenager aesthetic, fashion-forward, gothic glam style", category: "western" },
+  { id: "juniper_lee", name: "Juniper Lee", promptText: "in Life and Times of Juniper Lee animation style, magical girl action, Asian-American protagonist", category: "western" },
+  { id: "justice_league", name: "Justice League", promptText: "in Justice League Unlimited animation style, Bruce Timm DCAU style, angular heroic designs, dramatic shadows", category: "western" },
+
+  // Anime Styles
+  { id: "pokemon", name: "Pokemon", promptText: "in Pokemon anime style, bright colors, creature design, shonen adventure aesthetic, Ken Sugimori influenced", category: "anime" },
+  { id: "naruto", name: "Naruto", promptText: "in Naruto anime style, ninja aesthetic, dynamic action poses, Studio Pierrot style, detailed backgrounds", category: "anime" },
+  { id: "one_piece", name: "One Piece", promptText: "in One Piece anime style, Eiichiro Oda style, exaggerated proportions, pirate adventure aesthetic", category: "anime" },
+  { id: "avatar", name: "Avatar: The Last Airbender", promptText: "in Avatar The Last Airbender animation style, anime-influenced American animation, elemental bending, Asian-inspired aesthetic", category: "anime" },
+  { id: "sailor_moon", name: "Sailor Moon", promptText: "in Sailor Moon anime style, magical girl aesthetic, sparkles and transformation, 90s shoujo style", category: "anime" },
+  { id: "yugioh", name: "Yu-Gi-Oh!", promptText: "in Yu-Gi-Oh anime style, Kazuki Takahashi style, spiky hair, card game aesthetic, dramatic poses", category: "anime" },
+  { id: "studio_ghibli", name: "Studio Ghibli", promptText: "in Studio Ghibli animation style, Hayao Miyazaki style, lush backgrounds, whimsical characters, hand-painted aesthetic", category: "anime" },
+  { id: "dragon_ball", name: "Dragon Ball", promptText: "in Dragon Ball anime style, Akira Toriyama style, spiky hair, muscular characters, energy auras", category: "anime" },
+
+  // Video Game Styles
+  { id: "minecraft", name: "Minecraft", promptText: "in Minecraft style, blocky pixel art, voxel aesthetic, cubic characters, 16-bit texture style", category: "video_game" },
+  { id: "sonic", name: "Sonic the Hedgehog", promptText: "in Sonic the Hedgehog style, SEGA style, anthropomorphic animal, blue speedster aesthetic, loop-de-loops", category: "video_game" },
+  { id: "mario", name: "Super Mario Bros", promptText: "in Super Mario Bros style, Nintendo style, colorful mushroom kingdom, platformer aesthetic, pixel-inspired", category: "video_game" },
+
+  // Other Styles
+  { id: "disney", name: "Disney", promptText: "in Disney animation style, classic Disney princess aesthetic, expressive eyes, flowing animation, magical fairy tale", category: "other" },
+  { id: "gorillaz", name: "Gorillaz", promptText: "in Gorillaz art style, Jamie Hewlett style, urban aesthetic, virtual band, edgy cartoon style", category: "other" },
+];
+
 // Common Negative Prompts
 export const COMMON_NEGATIVE_PROMPTS = [
   "blurry",
@@ -358,6 +425,7 @@ export const DEFAULT_PROMPT_STATE = {
   setting: "",
   styleType: "AUTO" as StyleType,
   artStyle: "",
+  animationStyle: "",
   mood: "",
   lighting: "",
   colorScheme: "",
