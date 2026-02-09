@@ -12,6 +12,7 @@ import {
 import type { PromptBuilderState, PromptHistoryItem } from "@/types/prompt";
 import { DEFAULT_PROMPT_STATE } from "./constants";
 import { buildPrompt, generateNegativePrompt } from "./prompt-builder";
+import { useAuth } from "./auth-context";
 
 interface PromptContextValue {
   state: PromptBuilderState;
@@ -63,6 +64,7 @@ interface PromptProviderProps {
 }
 
 export function PromptProvider({ children }: PromptProviderProps) {
+  const { user, settings, updateSettings, isConfigured } = useAuth();
   const [state, dispatch] = useReducer(promptReducer, DEFAULT_PROMPT_STATE);
   const [optimizedPrompt, setOptimizedPromptState] = useState<string | null>(null);
   const [history, setHistory] = useReducer(
@@ -94,7 +96,7 @@ export function PromptProvider({ children }: PromptProviderProps) {
     []
   );
 
-  const [apiKeys, setApiKeys] = useReducer(
+  const [localApiKeys, setLocalApiKeys] = useReducer(
     (
       state: { claude: string; ideogram: string },
       action: { type: "SET"; key: "claude" | "ideogram"; value: string } | { type: "LOAD"; keys: { claude: string; ideogram: string } }
@@ -107,7 +109,13 @@ export function PromptProvider({ children }: PromptProviderProps) {
     { claude: "", ideogram: "" }
   );
 
-  // Load from localStorage on mount
+  // Compute effective API keys: prefer auth context when logged in, fallback to localStorage
+  const apiKeys = {
+    claude: (user && settings?.claude_api_key) || localApiKeys.claude,
+    ideogram: (user && settings?.ideogram_api_key) || localApiKeys.ideogram,
+  };
+
+  // Load from localStorage on mount (only for non-authenticated users or as fallback)
   useEffect(() => {
     if (typeof window !== "undefined") {
       const savedHistory = localStorage.getItem("ideogram-prompt-history");
@@ -123,7 +131,7 @@ export function PromptProvider({ children }: PromptProviderProps) {
 
       if (savedKeys) {
         try {
-          setApiKeys({ type: "LOAD", keys: JSON.parse(savedKeys) });
+          setLocalApiKeys({ type: "LOAD", keys: JSON.parse(savedKeys) });
         } catch (e) {
           console.error("Failed to load API keys:", e);
         }
@@ -138,12 +146,12 @@ export function PromptProvider({ children }: PromptProviderProps) {
     }
   }, [history]);
 
-  // Save API keys to localStorage
+  // Save API keys to localStorage only when not logged in
   useEffect(() => {
-    if (typeof window !== "undefined" && (apiKeys.claude || apiKeys.ideogram)) {
-      localStorage.setItem("ideogram-api-keys", JSON.stringify(apiKeys));
+    if (typeof window !== "undefined" && !user && (localApiKeys.claude || localApiKeys.ideogram)) {
+      localStorage.setItem("ideogram-api-keys", JSON.stringify(localApiKeys));
     }
-  }, [apiKeys]);
+  }, [localApiKeys, user]);
 
   const updateState = useCallback(
     <K extends keyof PromptBuilderState>(
@@ -188,9 +196,20 @@ export function PromptProvider({ children }: PromptProviderProps) {
     localStorage.removeItem("ideogram-prompt-history");
   }, []);
 
-  const setApiKey = useCallback((key: "claude" | "ideogram", value: string) => {
-    setApiKeys({ type: "SET", key, value });
-  }, []);
+  const setApiKey = useCallback(async (key: "claude" | "ideogram", value: string) => {
+    // If user is logged in, save to database
+    if (user && isConfigured) {
+      try {
+        const dbKey = key === "claude" ? "claude_api_key" : "ideogram_api_key";
+        await updateSettings({ [dbKey]: value });
+      } catch (err) {
+        console.error("Failed to save API key to database:", err);
+        // Still update local state as fallback
+      }
+    }
+    // Always update local state (for immediate UI response and fallback)
+    setLocalApiKeys({ type: "SET", key, value });
+  }, [user, isConfigured, updateSettings]);
 
   const setOptimizedPrompt = useCallback((prompt: string | null) => {
     setOptimizedPromptState(prompt);
