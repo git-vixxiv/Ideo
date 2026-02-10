@@ -44,20 +44,30 @@ export function PromptPreview() {
         headers["x-api-key"] = apiKeys.claude;
       }
 
+      // Strip out image data before sending to Claude (it only needs prompt-related state)
+      const { sourceImage, maskImage, styleReferenceImage, characterReferenceImage, ...stateWithoutImages } = state;
+
       const response = await fetch("/api/claude", {
         method: "POST",
         headers,
         body: JSON.stringify({
           currentPrompt: generatedPrompt,
-          state,
+          state: stateWithoutImages,
           action: "optimize",
           requestVariations: true,
         }),
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to optimize prompt");
+        let errorMessage = "Failed to optimize prompt";
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch {
+          const text = await response.text();
+          errorMessage = text || `Request failed with status ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -98,20 +108,30 @@ export function PromptPreview() {
         headers["x-api-key"] = apiKeys.claude;
       }
 
+      // Strip out image data before sending to Claude
+      const { sourceImage: _src, maskImage: _mask, styleReferenceImage: _style, characterReferenceImage: _char, ...stateWithoutImages } = state;
+
       const response = await fetch("/api/claude", {
         method: "POST",
         headers,
         body: JSON.stringify({
           currentPrompt,
-          state,
+          state: stateWithoutImages,
           action: "refine",
           feedback: feedback.trim(),
         }),
       });
 
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || "Failed to refine prompt");
+        let errorMessage = "Failed to refine prompt";
+        try {
+          const data = await response.json();
+          errorMessage = data.error || errorMessage;
+        } catch {
+          const text = await response.text();
+          errorMessage = text || `Request failed with status ${response.status}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
